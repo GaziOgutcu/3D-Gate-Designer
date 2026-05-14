@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { createScene, handleResize } from '../three/scene'
 import { rebuildGate } from '../three/gateBuilder'
 import { loadCarModel, updateCarModel } from '../three/carModel'
@@ -136,6 +136,49 @@ export default function Viewport3D({ cfg, priceStr }) {
           cursor: 'grab',
         }}
       />
+
+      {carStatus === 'loading' && (
+        <div
+          style={{
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            transform: 'translate(-50%, -50%)',
+            background: 'rgba(10,15,13,0.82)',
+            border: '1px solid #2a332e',
+            borderRadius: 10,
+            color: '#d4a017',
+            padding: '10px 14px',
+            fontSize: '0.72rem',
+            letterSpacing: 1,
+            textTransform: 'uppercase',
+            pointerEvents: 'none',
+            zIndex: 5,
+          }}
+        >
+          Loading car model…
+        </div>
+      )}
+
+      {carStatus === 'fallback' && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 72,
+            left: 14,
+            background: 'rgba(10,15,13,0.78)',
+            border: '1px solid #4b3b18',
+            borderRadius: 10,
+            color: '#d4a017',
+            padding: '8px 12px',
+            fontSize: '0.68rem',
+            pointerEvents: 'none',
+            zIndex: 5,
+          }}
+        >
+          Add /public/models/car.glb to use the GLB car model.
+        </div>
+      )}
 
       {/* Top overlay */}
       <div
