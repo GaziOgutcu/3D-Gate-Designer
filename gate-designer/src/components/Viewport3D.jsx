@@ -86,7 +86,6 @@ export default function Viewport3D({ cfg, priceStr }) {
 
     const animate = () => {
       frameRef.current = requestAnimationFrame(animate)
-      if (!c.interacting) c.tAngle += 0.001
       c.angle += (c.tAngle - c.angle) * 0.05
       c.y += (c.tY - c.y) * 0.05
       c.radius += (c.tR - c.radius) * 0.05
@@ -141,9 +140,6 @@ export default function Viewport3D({ cfg, priceStr }) {
       c.tY = 2.5
       c.tR = 6
     }
-    setTimeout(() => {
-      c.interacting = false
-    }, 2000)
   }
 
   const viewBtnStyle = {
