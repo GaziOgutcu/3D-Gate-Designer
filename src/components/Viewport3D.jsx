@@ -1,6 +1,38 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { createScene, handleResize } from '../three/scene'
 import { rebuildGate } from '../three/gateBuilder'
+import { loadCarModel, updateCarModel } from '../three/carModel'
+
+function positionCamera(sceneState, cfg, view) {
+  const { camera, controls } = sceneState
+  const targetY = cfg.height * 0.45
+  controls.target.set(0, targetY, 0)
+
+  if (view === 'front') {
+    camera.position.set(0, cfg.height * 0.6, Math.max(cfg.width * 1.5, 5))
+  } else if (view === 'side') {
+    camera.position.set(Math.max(cfg.width * 1.25, 5), cfg.height * 0.6, 0)
+  } else if (view === 'top') {
+    camera.position.set(0.01, 8, 0.01)
+  } else {
+    const radius = 6
+    const angle = 0.4
+    camera.position.set(Math.sin(angle) * radius, 2.5, Math.cos(angle) * radius)
+  }
+
+  camera.lookAt(controls.target)
+  controls.update()
+}
+
+function disposeObject(object) {
+  object.traverse((child) => {
+    if (child.geometry) child.geometry.dispose()
+    if (child.material) {
+      if (Array.isArray(child.material)) child.material.forEach((m) => m.dispose())
+      else child.material.dispose()
+    }
+  })
+}
 
 export default function Viewport3D({ cfg, priceStr }) {
   const canvasRef = useRef(null)
@@ -8,74 +40,27 @@ export default function Viewport3D({ cfg, priceStr }) {
   const frameRef = useRef(null)
   const cfgRef = useRef(cfg)
   const loadedRef = useRef(false)
-
-  const cam = useRef({
-    angle: 0.4,
-    y: 2.5,
-    radius: 6,
-    tAngle: 0.4,
-    tY: 2.5,
-    tR: 6,
-    interacting: false,
-    down: false,
-    lx: 0,
-    ly: 0,
-  })
+  const carRef = useRef(null)
+  const [carStatus, setCarStatus] = useState('loading')
 
   cfgRef.current = cfg
 
   // Init scene once
   useEffect(() => {
     const canvas = canvasRef.current
-    if (!canvas || loadedRef.current) return
+    if (!canvas || loadedRef.current) return undefined
     loadedRef.current = true
 
     const s = createScene(canvas)
     sceneRef.current = s
     rebuildGate(s.gateGroup, cfgRef.current)
+    positionCamera(s, cfgRef.current, 'persp')
 
-    const c = cam.current
-
-    // Mouse handlers
-    const onDown = (e) => {
-      c.down = true
-      c.interacting = true
-      const pt = e.touches ? e.touches[0] : e
-      c.lx = pt.clientX
-      c.ly = pt.clientY
-    }
-    const onMove = (e) => {
-      if (!c.down) return
-      e.preventDefault()
-      const pt = e.touches ? e.touches[0] : e
-      c.tAngle -= (pt.clientX - c.lx) * 0.006
-      c.tY = Math.max(0.5, Math.min(6, c.tY + (pt.clientY - c.ly) * 0.01))
-      c.lx = pt.clientX
-      c.ly = pt.clientY
-    }
-    const onUp = () => {
-      c.down = false
-      setTimeout(() => {
-        c.interacting = false
-      }, 3000)
-    }
-    const onWheel = (e) => {
-      e.preventDefault()
-      c.tR = Math.max(3, Math.min(14, c.tR + e.deltaY * 0.005))
-      c.interacting = true
-      setTimeout(() => {
-        c.interacting = false
-      }, 3000)
-    }
-
-    canvas.addEventListener('mousedown', onDown)
-    canvas.addEventListener('mousemove', onMove)
-    canvas.addEventListener('mouseup', onUp)
-    canvas.addEventListener('mouseleave', onUp)
-    canvas.addEventListener('wheel', onWheel, { passive: false })
-    canvas.addEventListener('touchstart', onDown, { passive: false })
-    canvas.addEventListener('touchmove', onMove, { passive: false })
-    canvas.addEventListener('touchend', onUp)
+    carRef.current = loadCarModel(s.scene, cfgRef.current, {
+      onLoading: () => setCarStatus('loading'),
+      onLoaded: () => setCarStatus('ready'),
+      onFallback: () => setCarStatus('fallback'),
+    })
 
     const onResize = () => handleResize(canvas, s.camera, s.renderer)
     window.addEventListener('resize', onResize)
@@ -86,30 +71,20 @@ export default function Viewport3D({ cfg, priceStr }) {
 
     const animate = () => {
       frameRef.current = requestAnimationFrame(animate)
-      c.angle += (c.tAngle - c.angle) * 0.05
-      c.y += (c.tY - c.y) * 0.05
-      c.radius += (c.tR - c.radius) * 0.05
-
-      s.camera.position.x = Math.sin(c.angle) * c.radius
-      s.camera.position.z = Math.cos(c.angle) * c.radius
-      s.camera.position.y = c.y
-      s.camera.lookAt(0, cfgRef.current.height * 0.4, 0)
+      s.controls.update()
       s.renderer.render(s.scene, s.camera)
     }
     animate()
 
     return () => {
       cancelAnimationFrame(frameRef.current)
-      canvas.removeEventListener('mousedown', onDown)
-      canvas.removeEventListener('mousemove', onMove)
-      canvas.removeEventListener('mouseup', onUp)
-      canvas.removeEventListener('mouseleave', onUp)
-      canvas.removeEventListener('wheel', onWheel)
-      canvas.removeEventListener('touchstart', onDown)
-      canvas.removeEventListener('touchmove', onMove)
-      canvas.removeEventListener('touchend', onUp)
       window.removeEventListener('resize', onResize)
       ro.disconnect()
+      s.controls.dispose()
+      if (carRef.current) {
+        disposeObject(carRef.current)
+        s.scene.remove(carRef.current)
+      }
       s.renderer.dispose()
     }
   }, [])
@@ -118,27 +93,15 @@ export default function Viewport3D({ cfg, priceStr }) {
   useEffect(() => {
     if (sceneRef.current) {
       rebuildGate(sceneRef.current.gateGroup, cfg)
+      updateCarModel(carRef.current, cfg)
+      sceneRef.current.controls.target.set(0, cfg.height * 0.45, 0)
+      sceneRef.current.controls.update()
     }
   }, [cfg])
 
   const setView = (view) => {
-    const c = cam.current
-    c.interacting = true
-    if (view === 'front') {
-      c.tAngle = 0
-      c.tY = cfg.height * 0.6
-      c.tR = Math.max(cfg.width * 1.5, 5)
-    } else if (view === 'side') {
-      c.tAngle = Math.PI / 2
-      c.tY = cfg.height * 0.6
-      c.tR = 5
-    } else if (view === 'top') {
-      c.tY = 8
-      c.tR = 0.1
-    } else {
-      c.tAngle = 0.4
-      c.tY = 2.5
-      c.tR = 6
+    if (sceneRef.current) {
+      positionCamera(sceneRef.current, cfg, view)
     }
   }
 
@@ -178,6 +141,49 @@ export default function Viewport3D({ cfg, priceStr }) {
           cursor: 'grab',
         }}
       />
+
+      {carStatus === 'loading' && (
+        <div
+          style={{
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            transform: 'translate(-50%, -50%)',
+            background: 'rgba(10,15,13,0.82)',
+            border: '1px solid #2a332e',
+            borderRadius: 10,
+            color: '#d4a017',
+            padding: '10px 14px',
+            fontSize: '0.72rem',
+            letterSpacing: 1,
+            textTransform: 'uppercase',
+            pointerEvents: 'none',
+            zIndex: 5,
+          }}
+        >
+          Loading car model…
+        </div>
+      )}
+
+      {carStatus === 'fallback' && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 72,
+            left: 14,
+            background: 'rgba(10,15,13,0.78)',
+            border: '1px solid #4b3b18',
+            borderRadius: 10,
+            color: '#d4a017',
+            padding: '8px 12px',
+            fontSize: '0.68rem',
+            pointerEvents: 'none',
+            zIndex: 5,
+          }}
+        >
+          Add /public/models/car.glb to use the GLB car model.
+        </div>
+      )}
 
       {/* Top overlay */}
       <div
