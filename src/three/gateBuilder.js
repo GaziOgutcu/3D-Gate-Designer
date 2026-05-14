@@ -82,6 +82,36 @@ export function rebuildGate(gateGroup, cfg) {
     transparent: true,
     opacity: 0.72,
   })
+  const asphaltMat = new THREE.MeshStandardMaterial({
+    color: 0x242424,
+    roughness: 0.96,
+    metalness: 0,
+  })
+  const curbMat = new THREE.MeshStandardMaterial({
+    color: 0xc8c3b8,
+    roughness: 0.82,
+    metalness: 0,
+  })
+  const lineMat = new THREE.MeshStandardMaterial({
+    color: 0xf3dc6a,
+    roughness: 0.55,
+    metalness: 0,
+  })
+  const neighbourWallMat = new THREE.MeshStandardMaterial({
+    color: 0xc8bba5,
+    roughness: 0.8,
+    metalness: 0,
+  })
+  const carPaintMat = new THREE.MeshStandardMaterial({
+    color: 0x52677c,
+    roughness: 0.38,
+    metalness: 0.35,
+  })
+  const tyreMat = new THREE.MeshStandardMaterial({
+    color: 0x111111,
+    roughness: 0.7,
+    metalness: 0.05,
+  })
 
   buildPropertyEnvironment(gateGroup, {
     w,
@@ -99,6 +129,12 @@ export function rebuildGate(gateGroup, cfg) {
     houseWallMat,
     roofMat,
     glassMat,
+    asphaltMat,
+    curbMat,
+    lineMat,
+    neighbourWallMat,
+    carPaintMat,
+    tyreMat,
   })
 
   // ── Pillars ──
@@ -256,9 +292,43 @@ function buildPropertyEnvironment(group, env) {
     houseWallMat,
     roofMat,
     glassMat,
+    asphaltMat,
+    curbMat,
+    lineMat,
+    neighbourWallMat,
+    carPaintMat,
+    tyreMat,
   } = env
 
   const drivewayWidth = Math.max(w + 0.9, 2.4)
+  const streetZ = 2.95
+  const streetDepth = 3.2
+  const sidewalkZ = 1.05
+  const streetWidth = lotWidth + 7
+
+  addBox(group, [streetWidth, 0.035, streetDepth], [0, 0.018, streetZ], asphaltMat, {
+    receiveShadow: true,
+    castShadow: false,
+  })
+  addBox(group, [streetWidth, 0.05, 0.72], [0, 0.045, sidewalkZ], curbMat, {
+    receiveShadow: true,
+    castShadow: false,
+  })
+  addBox(group, [streetWidth, 0.08, 0.16], [0, 0.075, 1.52], curbMat, {
+    receiveShadow: true,
+    castShadow: false,
+  })
+  addBox(group, [drivewayWidth + 0.45, 0.06, 1.05], [0, 0.07, 0.98], drivewayMat, {
+    receiveShadow: true,
+    castShadow: false,
+  })
+  for (let i = -3; i <= 3; i++) {
+    addBox(group, [1.05, 0.012, 0.055], [i * 2.15, 0.045, streetZ + 0.18], lineMat, {
+      receiveShadow: false,
+      castShadow: false,
+    })
+  }
+
   addBox(group, [drivewayWidth, 0.018, lotDepth + 2.2], [0, 0.012, -lotDepth / 2 + 0.2], drivewayMat, {
     receiveShadow: true,
     castShadow: false,
@@ -312,6 +382,27 @@ function buildPropertyEnvironment(group, env) {
     addBox(group, [0.05, 0.7, 0.09], [x, 1.16, houseZ + houseDepth / 2 + 0.065], roofMat)
   })
 
+
+  const neighbourZ = -Math.max(5.4, lotDepth * 0.54)
+  addNeighbourHouse(group, -lotWidth * 0.72, neighbourZ + 0.25, 3.4, 1.55, neighbourWallMat, roofMat, glassMat)
+  addNeighbourHouse(group, lotWidth * 0.72, neighbourZ - 0.35, 3.7, 1.65, neighbourWallMat, roofMat, glassMat)
+
+  addBox(group, [0.28, 0.42, 0.16], [-w / 2 - 0.86, 0.36, 1.15], new THREE.MeshStandardMaterial({
+    color: 0x1f2933,
+    roughness: 0.62,
+    metalness: 0.25,
+  }))
+  addCylinder(group, 0.025, 0.025, 0.45, [-w / 2 - 0.86, 0.225, 1.15], stoneCapMat, { segments: 10 })
+  ;[
+    [-lotWidth * 0.36, 2.02, 0x1d5c4c],
+    [-lotWidth * 0.36 - 0.34, 2.02, 0x28313a],
+  ].forEach(([x, z, binColor]) => {
+    addBox(group, [0.24, 0.42, 0.28], [x, 0.23, z], new THREE.MeshStandardMaterial({ color: binColor, roughness: 0.7 }))
+    addBox(group, [0.27, 0.055, 0.31], [x, 0.475, z], tyreMat)
+  })
+
+  addParkedCar(group, lotWidth * 0.28, streetZ + 0.45, carPaintMat, glassMat, tyreMat)
+
   const gardenZ = -2.4
   ;[-1, 1].forEach((side) => {
     const bedX = side * (drivewayWidth / 2 + Math.max(0.45, lawnWidth * 0.32))
@@ -340,6 +431,37 @@ function buildPropertyEnvironment(group, env) {
     }), { segments: 12 })
     lamp.castShadow = false
   })
+}
+
+
+function addNeighbourHouse(group, x, z, width, height, wallMat, roofMat, glassMat) {
+  addBox(group, [width, height, 2.0], [x, height / 2, z], wallMat)
+  addBox(group, [width + 0.35, 0.2, 2.3], [x, height + 0.2, z], roofMat, {
+    rotation: [0.08, 0, 0],
+  })
+  addBox(group, [0.62, 0.88, 0.06], [x, 0.46, z + 1.03], roofMat)
+  ;[-0.28, 0.28].forEach((offset) => {
+    addBox(group, [0.48, 0.42, 0.06], [x + offset * width, 0.98, z + 1.04], glassMat)
+  })
+}
+
+function addParkedCar(group, x, z, paintMat, glassMat, tyreMat) {
+  addBox(group, [1.55, 0.34, 0.72], [x, 0.24, z], paintMat)
+  addBox(group, [0.82, 0.32, 0.58], [x - 0.08, 0.56, z], glassMat)
+  ;[-0.52, 0.52].forEach((dx) => {
+    ;[-0.34, 0.34].forEach((dz) => {
+      addCylinder(group, 0.12, 0.12, 0.08, [x + dx, 0.13, z + dz], tyreMat, {
+        rotation: [Math.PI / 2, 0, 0],
+        segments: 16,
+      })
+    })
+  })
+  addBox(group, [0.18, 0.05, 0.74], [x + 0.82, 0.33, z], new THREE.MeshStandardMaterial({
+    color: 0xf5e7c7,
+    roughness: 0.35,
+    emissive: 0xf4d28a,
+    emissiveIntensity: 0.12,
+  }))
 }
 
 function addShrub(group, x, z, radius, mat) {
