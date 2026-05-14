@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react'
 import { createScene, handleResize } from '../three/scene'
 import { rebuildGate } from '../three/gateBuilder'
 import { loadCarModel, updateCarModel } from '../three/carModel'
+import { loadHouseModel, updateHouseModel } from '../three/houseModel'
+import { clearGroup } from '../three/modelLoader'
 
 function positionCamera(sceneState, cfg, view) {
   const { camera, controls } = sceneState
@@ -24,15 +26,6 @@ function positionCamera(sceneState, cfg, view) {
   controls.update()
 }
 
-function disposeObject(object) {
-  object.traverse((child) => {
-    if (child.geometry) child.geometry.dispose()
-    if (child.material) {
-      if (Array.isArray(child.material)) child.material.forEach((m) => m.dispose())
-      else child.material.dispose()
-    }
-  })
-}
 
 export default function Viewport3D({ cfg, priceStr }) {
   const canvasRef = useRef(null)
@@ -41,7 +34,7 @@ export default function Viewport3D({ cfg, priceStr }) {
   const cfgRef = useRef(cfg)
   const loadedRef = useRef(false)
   const carRef = useRef(null)
-  const [carStatus, setCarStatus] = useState('loading')
+  const houseRef = useRef(null)
 
   cfgRef.current = cfg
 
@@ -56,11 +49,8 @@ export default function Viewport3D({ cfg, priceStr }) {
     rebuildGate(s.gateGroup, cfgRef.current)
     positionCamera(s, cfgRef.current, 'persp')
 
-    carRef.current = loadCarModel(s.scene, cfgRef.current, {
-      onLoading: () => setCarStatus('loading'),
-      onLoaded: () => setCarStatus('ready'),
-      onFallback: () => setCarStatus('fallback'),
-    })
+    carRef.current = loadCarModel(s.scene, cfgRef.current)
+    houseRef.current = loadHouseModel(s.scene, cfgRef.current)
 
     const onResize = () => handleResize(canvas, s.camera, s.renderer)
     window.addEventListener('resize', onResize)
@@ -82,8 +72,12 @@ export default function Viewport3D({ cfg, priceStr }) {
       ro.disconnect()
       s.controls.dispose()
       if (carRef.current) {
-        disposeObject(carRef.current)
+        clearGroup(carRef.current)
         s.scene.remove(carRef.current)
+      }
+      if (houseRef.current) {
+        clearGroup(houseRef.current)
+        s.scene.remove(houseRef.current)
       }
       s.renderer.dispose()
     }
@@ -94,6 +88,7 @@ export default function Viewport3D({ cfg, priceStr }) {
     if (sceneRef.current) {
       rebuildGate(sceneRef.current.gateGroup, cfg)
       updateCarModel(carRef.current, cfg)
+      updateHouseModel(houseRef.current, cfg)
       sceneRef.current.controls.target.set(0, cfg.height * 0.45, 0)
       sceneRef.current.controls.update()
     }

@@ -1,75 +1,38 @@
 import * as THREE from 'three'
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { fitModelToHorizontalLength, loadGlbModel } from './modelLoader'
 
 const CAR_MODEL_URL = '/models/car.glb'
+const CAR_LENGTH_METERS = 4.6
+const CAR_WIDTH_METERS = 1.85
+const CAR_HEIGHT_METERS = 1.45
 
 export function loadCarModel(scene, cfg, callbacks = {}) {
-  const carGroup = new THREE.Group()
-  carGroup.name = 'Residential street car'
-  scene.add(carGroup)
-  updateCarModel(carGroup, cfg)
-
-  callbacks.onLoading?.()
-
-  const loader = new GLTFLoader()
-  loader.load(
-    CAR_MODEL_URL,
-    (gltf) => {
-      carGroup.clear()
-      const model = gltf.scene
-      prepareModel(model)
-      normalizeModel(model)
-      carGroup.add(model)
-      callbacks.onLoaded?.()
-    },
-    undefined,
-    () => {
-      carGroup.clear()
-      buildFallbackCar(carGroup)
-      callbacks.onFallback?.()
-    }
-  )
-
-  return carGroup
+  return loadGlbModel({
+    scene,
+    cfg,
+    url: CAR_MODEL_URL,
+    name: 'Residential street car',
+    buildFallback: buildFallbackCar,
+    updateTransform: updateCarModel,
+    normalize: normalizeCarModel,
+    onReady: callbacks.onLoaded,
+    onError: callbacks.onFallback,
+  })
 }
 
 export function updateCarModel(carGroup, cfg) {
   if (!carGroup) return
   const lotWidth = Math.max(cfg.width + 8, cfg.width * 2.2)
-  carGroup.position.set(lotWidth * 0.28, 0.065, 3.4)
+  carGroup.position.set(lotWidth * 0.24, 0.045, 3.4)
   carGroup.rotation.set(0, Math.PI / 2, 0)
 }
 
-function prepareModel(model) {
-  model.traverse((child) => {
-    if (!child.isMesh) return
-    child.castShadow = true
-    child.receiveShadow = true
-    if (child.material) {
-      child.material.needsUpdate = true
-    }
-  })
+function normalizeCarModel(model) {
+  fitModelToHorizontalLength(model, CAR_LENGTH_METERS)
 }
 
-function normalizeModel(model) {
-  const box = new THREE.Box3().setFromObject(model)
-  const size = new THREE.Vector3()
-  const center = new THREE.Vector3()
-  box.getSize(size)
-  box.getCenter(center)
-
-  const maxHorizontalSize = Math.max(size.x, size.z, 0.001)
-  const desiredLength = 1.65
-  const scale = desiredLength / maxHorizontalSize
-
-  model.position.sub(center)
-  model.scale.setScalar(scale)
-
-  const scaledBox = new THREE.Box3().setFromObject(model)
-  model.position.y -= scaledBox.min.y
-}
-
-function buildFallbackCar(group) {
+function buildFallbackCar() {
+  const group = new THREE.Group()
   const paintMat = new THREE.MeshStandardMaterial({
     color: 0x52677c,
     roughness: 0.38,
@@ -94,23 +57,25 @@ function buildFallbackCar(group) {
     emissiveIntensity: 0.12,
   })
 
-  addBox(group, [1.55, 0.34, 0.72], [0, 0.24, 0], paintMat)
-  addBox(group, [0.82, 0.32, 0.58], [-0.08, 0.56, 0], glassMat)
-  addBox(group, [0.18, 0.05, 0.74], [0.82, 0.33, 0], lightMat)
+  addBox(group, [CAR_WIDTH_METERS, 0.6, CAR_LENGTH_METERS], [0, 0.55, 0], paintMat)
+  addBox(group, [1.35, 0.55, 1.55], [-0.08, 1.08, -0.2], glassMat)
+  addBox(group, [CAR_WIDTH_METERS + 0.04, 0.08, 0.18], [0, 0.64, CAR_LENGTH_METERS / 2 + 0.02], lightMat)
 
-  ;[-0.52, 0.52].forEach((dx) => {
-    ;[-0.34, 0.34].forEach((dz) => {
+  ;[-CAR_WIDTH_METERS * 0.47, CAR_WIDTH_METERS * 0.47].forEach((x) => {
+    ;[-CAR_LENGTH_METERS * 0.33, CAR_LENGTH_METERS * 0.33].forEach((z) => {
       const tyre = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.12, 0.12, 0.08, 16),
+        new THREE.CylinderGeometry(0.34, 0.34, 0.18, 20),
         tyreMat
       )
-      tyre.position.set(dx, 0.13, dz)
-      tyre.rotation.x = Math.PI / 2
+      tyre.position.set(x, 0.34, z)
+      tyre.rotation.z = Math.PI / 2
       tyre.castShadow = true
       tyre.receiveShadow = true
       group.add(tyre)
     })
   })
+
+  return group
 }
 
 function addBox(group, size, position, material) {

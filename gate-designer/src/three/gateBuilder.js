@@ -67,10 +67,6 @@ export function rebuildGate(gateGroup, cfg) {
     color: 0x6a442b,
     roughness: 0.9,
   })
-  const houseWallMat = new THREE.MeshStandardMaterial({
-    color: 0xd6d0c3,
-    roughness: 0.78,
-  })
   const roofMat = new THREE.MeshStandardMaterial({
     color: 0x5a2f24,
     roughness: 0.65,
@@ -121,7 +117,6 @@ export function rebuildGate(gateGroup, cfg) {
     mulchMat,
     leafMat,
     trunkMat,
-    houseWallMat,
     roofMat,
     glassMat,
     asphaltMat,
@@ -283,7 +278,6 @@ function buildPropertyEnvironment(group, env) {
     mulchMat,
     leafMat,
     trunkMat,
-    houseWallMat,
     roofMat,
     glassMat,
     asphaltMat,
@@ -353,28 +347,6 @@ function buildPropertyEnvironment(group, env) {
     addBox(group, [0.16, wallHeight * 0.9, returnFenceDepth], [x, wallHeight * 0.45, -returnFenceDepth / 2], stoneMat)
     addBox(group, [0.22, 0.07, returnFenceDepth + 0.08], [x, wallHeight * 0.9 + 0.035, -returnFenceDepth / 2], stoneCapMat)
   })
-
-  const houseWidth = Math.max(w + 1.6, 4.8)
-  const houseDepth = 2.4
-  const houseHeight = 1.95
-  const houseZ = -Math.max(6.2, lotDepth * 0.62)
-  addBox(group, [houseWidth, houseHeight, houseDepth], [0, houseHeight / 2, houseZ], houseWallMat)
-  addBox(group, [houseWidth + 0.35, 0.22, houseDepth + 0.45], [0, houseHeight + 0.26, houseZ], roofMat, {
-    rotation: [0.1, 0, 0],
-  })
-  addBox(group, [0.8, 1.1, 0.08], [0, 0.58, houseZ + houseDepth / 2 + 0.045], new THREE.MeshStandardMaterial({ color: 0x3e3327, roughness: 0.6 }))
-  ;[-0.32, 0.32].forEach((x) => {
-    addCylinder(group, 0.018, 0.018, 0.035, [x, 0.62, houseZ + houseDepth / 2 + 0.1], stoneCapMat, {
-      rotation: [Math.PI / 2, 0, 0],
-      segments: 12,
-    })
-  })
-  ;[-houseWidth * 0.32, houseWidth * 0.32].forEach((x) => {
-    addBox(group, [0.9, 0.65, 0.07], [x, 1.16, houseZ + houseDepth / 2 + 0.05], glassMat)
-    addBox(group, [0.96, 0.05, 0.09], [x, 1.5, houseZ + houseDepth / 2 + 0.06], roofMat)
-    addBox(group, [0.05, 0.7, 0.09], [x, 1.16, houseZ + houseDepth / 2 + 0.065], roofMat)
-  })
-
 
   const neighbourZ = -Math.max(5.4, lotDepth * 0.54)
   addNeighbourHouse(group, -lotWidth * 0.72, neighbourZ + 0.25, 3.4, 1.55, neighbourWallMat, roofMat, glassMat)
