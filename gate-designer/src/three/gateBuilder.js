@@ -348,9 +348,9 @@ function buildPropertyEnvironment(group, env) {
     addBox(group, [0.22, 0.07, returnFenceDepth + 0.08], [x, wallHeight * 0.9 + 0.035, -returnFenceDepth / 2], stoneCapMat)
   })
 
-  const neighbourZ = -Math.max(5.4, lotDepth * 0.54)
-  addNeighbourHouse(group, -lotWidth * 0.72, neighbourZ + 0.25, 3.4, 1.55, neighbourWallMat, roofMat, glassMat)
-  addNeighbourHouse(group, lotWidth * 0.72, neighbourZ - 0.35, 3.7, 1.65, neighbourWallMat, roofMat, glassMat)
+  const rearNeighbourZ = -Math.max(5.4, lotDepth * 0.54)
+  addNeighbourHouse(group, -lotWidth * 0.72, rearNeighbourZ + 0.25, 3.4, 1.55, neighbourWallMat, roofMat, glassMat)
+  addNeighbourHouse(group, lotWidth * 0.72, rearNeighbourZ - 0.35, 3.7, 1.65, neighbourWallMat, roofMat, glassMat)
 
   addBox(group, [0.28, 0.42, 0.16], [-w / 2 - 0.86, 0.36, 1.15], new THREE.MeshStandardMaterial({
     color: 0x1f2933,

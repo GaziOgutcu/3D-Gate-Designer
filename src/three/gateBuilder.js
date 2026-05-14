@@ -348,28 +348,9 @@ function buildPropertyEnvironment(group, env) {
     addBox(group, [0.22, 0.07, returnFenceDepth + 0.08], [x, wallHeight * 0.9 + 0.035, -returnFenceDepth / 2], stoneCapMat)
   })
 
-  const neighbourZ = -Math.max(5.4, lotDepth * 0.54)
-  addNeighbourHouse(group, -lotWidth * 0.72, neighbourZ + 0.25, 3.4, 1.55, neighbourWallMat, roofMat, glassMat)
-  addNeighbourHouse(group, lotWidth * 0.72, neighbourZ - 0.35, 3.7, 1.65, neighbourWallMat, roofMat, glassMat)
-
-  addBox(group, [0.28, 0.42, 0.16], [-w / 2 - 0.86, 0.36, 1.15], new THREE.MeshStandardMaterial({
-    color: 0x1f2933,
-    roughness: 0.62,
-    metalness: 0.25,
-  }))
-  addCylinder(group, 0.025, 0.025, 0.45, [-w / 2 - 0.86, 0.225, 1.15], stoneCapMat, { segments: 10 })
-  ;[
-    [-lotWidth * 0.36, 2.02, 0x1d5c4c],
-    [-lotWidth * 0.36 - 0.34, 2.02, 0x28313a],
-  ].forEach(([x, z, binColor]) => {
-    addBox(group, [0.24, 0.42, 0.28], [x, 0.23, z], new THREE.MeshStandardMaterial({ color: binColor, roughness: 0.7 }))
-    addBox(group, [0.27, 0.055, 0.31], [x, 0.475, z], tyreMat)
-  })
-
-
-  const neighbourZ = -Math.max(5.4, lotDepth * 0.54)
-  addNeighbourHouse(group, -lotWidth * 0.72, neighbourZ + 0.25, 3.4, 1.55, neighbourWallMat, roofMat, glassMat)
-  addNeighbourHouse(group, lotWidth * 0.72, neighbourZ - 0.35, 3.7, 1.65, neighbourWallMat, roofMat, glassMat)
+  const rearNeighbourZ = -Math.max(5.4, lotDepth * 0.54)
+  addNeighbourHouse(group, -lotWidth * 0.72, rearNeighbourZ + 0.25, 3.4, 1.55, neighbourWallMat, roofMat, glassMat)
+  addNeighbourHouse(group, lotWidth * 0.72, rearNeighbourZ - 0.35, 3.7, 1.65, neighbourWallMat, roofMat, glassMat)
 
   addBox(group, [0.28, 0.42, 0.16], [-w / 2 - 0.86, 0.36, 1.15], new THREE.MeshStandardMaterial({
     color: 0x1f2933,
