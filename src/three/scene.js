@@ -2,8 +2,8 @@ import * as THREE from 'three'
 
 export function createScene(canvas) {
   const scene = new THREE.Scene()
-  scene.background = new THREE.Color(0x0a0f0d)
-  scene.fog = new THREE.FogExp2(0x0a0f0d, 0.035)
+  scene.background = new THREE.Color(0xbfd4e8)
+  scene.fog = new THREE.FogExp2(0xbfd4e8, 0.018)
 
   const camera = new THREE.PerspectiveCamera(
     40,
@@ -21,9 +21,9 @@ export function createScene(canvas) {
   renderer.toneMappingExposure = 1.15
 
   // ── Lighting ──
-  scene.add(new THREE.AmbientLight(0xffffff, 0.3))
+  scene.add(new THREE.AmbientLight(0xffffff, 0.42))
 
-  const hemi = new THREE.HemisphereLight(0xb0c4de, 0x2d4a2d, 0.45)
+  const hemi = new THREE.HemisphereLight(0xddeeff, 0x405b35, 0.58)
   scene.add(hemi)
 
   const dirLight = new THREE.DirectionalLight(0xfff5e6, 1.3)
@@ -46,10 +46,10 @@ export function createScene(canvas) {
   scene.add(rimLight)
 
   // ── Ground plane ──
-  const groundGeo = new THREE.PlaneGeometry(40, 40)
+  const groundGeo = new THREE.PlaneGeometry(60, 60)
   const groundMat = new THREE.MeshStandardMaterial({
-    color: 0x1a231e,
-    roughness: 0.95,
+    color: 0x203625,
+    roughness: 0.98,
     metalness: 0,
   })
   const ground = new THREE.Mesh(groundGeo, groundMat)
@@ -57,21 +57,6 @@ export function createScene(canvas) {
   ground.receiveShadow = true
   scene.add(ground)
 
-  // ── Driveway strip ──
-  const driveGeo = new THREE.PlaneGeometry(5, 12)
-  const driveMat = new THREE.MeshStandardMaterial({
-    color: 0x252e28,
-    roughness: 0.9,
-  })
-  const drive = new THREE.Mesh(driveGeo, driveMat)
-  drive.rotation.x = -Math.PI / 2
-  drive.position.set(0, 0.005, -3)
-  scene.add(drive)
-
-  // ── Grid helper ──
-  const grid = new THREE.GridHelper(20, 40, 0x2a332e, 0x1e2722)
-  grid.position.y = 0.01
-  scene.add(grid)
 
   // ── Gate group (will be rebuilt on config change) ──
   const gateGroup = new THREE.Group()
