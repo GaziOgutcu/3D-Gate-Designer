@@ -374,12 +374,15 @@ function buildNeighbourProperty(group, env) {
   addBox(group, [sideWallLength + 0.12, 0.08, wallDepth + 0.08], [leftWallCenter, wallHeight + 0.04, 0.08], stoneCapMat)
   addBox(group, [sideWallLength + 0.12, 0.08, wallDepth + 0.08], [rightWallCenter, wallHeight + 0.04, 0.08], stoneCapMat)
 
-  const returnFenceDepth = Math.max(4, lotDepth * 0.55)
+  const returnFenceDepth = lotDepth + 0.6
+  const rearWallZ = -returnFenceDepth
   ;[-1, 1].forEach((fenceSide) => {
     const x = xOffset + fenceSide * (lotWidth / 2)
     addBox(group, [0.16, wallHeight * 0.9, returnFenceDepth], [x, wallHeight * 0.45, -returnFenceDepth / 2], stoneMat)
     addBox(group, [0.22, 0.07, returnFenceDepth + 0.08], [x, wallHeight * 0.9 + 0.035, -returnFenceDepth / 2], stoneCapMat)
   })
+  addBox(group, [lotWidth + 0.16, wallHeight * 0.9, wallDepth], [xOffset, wallHeight * 0.45, rearWallZ], stoneMat)
+  addBox(group, [lotWidth + 0.28, 0.07, wallDepth + 0.08], [xOffset, wallHeight * 0.9 + 0.035, rearWallZ], stoneCapMat)
 
   const pW = 0.12
   const pH = gateH + 0.3
@@ -532,12 +535,15 @@ function buildPropertyEnvironment(group, env) {
   addBox(group, [sideWallLength + 0.12, 0.08, wallDepth + 0.08], [leftWallCenter, wallHeight + 0.04, 0.08], stoneCapMat)
   addBox(group, [sideWallLength + 0.12, 0.08, wallDepth + 0.08], [rightWallCenter, wallHeight + 0.04, 0.08], stoneCapMat)
 
-  const returnFenceDepth = Math.max(4, lotDepth * 0.55)
+  const returnFenceDepth = lotDepth + 0.6
+  const rearWallZ = -returnFenceDepth
   ;[-1, 1].forEach((side) => {
     const x = side * (lotWidth / 2)
     addBox(group, [0.16, wallHeight * 0.9, returnFenceDepth], [x, wallHeight * 0.45, -returnFenceDepth / 2], stoneMat)
     addBox(group, [0.22, 0.07, returnFenceDepth + 0.08], [x, wallHeight * 0.9 + 0.035, -returnFenceDepth / 2], stoneCapMat)
   })
+  addBox(group, [lotWidth + 0.16, wallHeight * 0.9, wallDepth], [0, wallHeight * 0.45, rearWallZ], stoneMat)
+  addBox(group, [lotWidth + 0.28, 0.07, wallDepth + 0.08], [0, wallHeight * 0.9 + 0.035, rearWallZ], stoneCapMat)
 
   addBox(group, [0.28, 0.42, 0.16], [-w / 2 - 0.86, 0.36, 1.15], new THREE.MeshStandardMaterial({
     color: 0x1f2933,
