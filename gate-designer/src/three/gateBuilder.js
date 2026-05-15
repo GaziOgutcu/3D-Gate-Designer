@@ -10,9 +10,9 @@ export function rebuildGate(gateGroup, cfg) {
   const w = cfg.width
   const h = cfg.height
   const color = new THREE.Color(cfg.color)
-  const lotWidth = Math.max(w + 8, w * 2.2)
-  const lotDepth = Math.max(13, w * 1.8)
-  const wallHeight = Math.max(1.25, Math.min(1.75, h + 0.18))
+  const lotWidth = Math.max(w + 7, 12)
+  const lotDepth = Math.max(14, w * 2.1)
+  const wallHeight = Math.max(1.6, Math.min(1.8, h + 0.05))
 
   // ── Materials ──
   const gateMat = new THREE.MeshStandardMaterial({
@@ -67,17 +67,6 @@ export function rebuildGate(gateGroup, cfg) {
     color: 0x6a442b,
     roughness: 0.9,
   })
-  const roofMat = new THREE.MeshStandardMaterial({
-    color: 0x5a2f24,
-    roughness: 0.65,
-  })
-  const glassMat = new THREE.MeshStandardMaterial({
-    color: 0x89a8b5,
-    roughness: 0.15,
-    metalness: 0.05,
-    transparent: true,
-    opacity: 0.72,
-  })
   const asphaltMat = new THREE.MeshStandardMaterial({
     color: 0x242424,
     roughness: 0.96,
@@ -91,11 +80,6 @@ export function rebuildGate(gateGroup, cfg) {
   const lineMat = new THREE.MeshStandardMaterial({
     color: 0xf3dc6a,
     roughness: 0.55,
-    metalness: 0,
-  })
-  const neighbourWallMat = new THREE.MeshStandardMaterial({
-    color: 0xc8bba5,
-    roughness: 0.8,
     metalness: 0,
   })
   const tyreMat = new THREE.MeshStandardMaterial({
@@ -117,12 +101,9 @@ export function rebuildGate(gateGroup, cfg) {
     mulchMat,
     leafMat,
     trunkMat,
-    roofMat,
-    glassMat,
     asphaltMat,
     curbMat,
     lineMat,
-    neighbourWallMat,
     tyreMat,
   })
 
@@ -278,19 +259,16 @@ function buildPropertyEnvironment(group, env) {
     mulchMat,
     leafMat,
     trunkMat,
-    roofMat,
-    glassMat,
     asphaltMat,
     curbMat,
     lineMat,
-    neighbourWallMat,
     tyreMat,
   } = env
 
-  const drivewayWidth = Math.max(w + 0.9, 2.4)
-  const streetZ = 2.95
-  const streetDepth = 3.2
-  const sidewalkZ = 1.05
+  const drivewayWidth = Math.max(w + 1.1, 3.2)
+  const streetZ = 3.35
+  const streetDepth = 5.6
+  const sidewalkZ = 0.82
   const streetWidth = lotWidth + 7
 
   addBox(group, [streetWidth, 0.035, streetDepth], [0, 0.018, streetZ], asphaltMat, {
@@ -305,7 +283,7 @@ function buildPropertyEnvironment(group, env) {
     receiveShadow: true,
     castShadow: false,
   })
-  addBox(group, [drivewayWidth + 0.45, 0.06, 1.05], [0, 0.07, 0.98], drivewayMat, {
+  addBox(group, [drivewayWidth + 0.55, 0.06, 1.35], [0, 0.07, 0.72], drivewayMat, {
     receiveShadow: true,
     castShadow: false,
   })
@@ -316,7 +294,7 @@ function buildPropertyEnvironment(group, env) {
     })
   }
 
-  addBox(group, [drivewayWidth, 0.018, lotDepth + 2.2], [0, 0.012, -lotDepth / 2 + 0.2], drivewayMat, {
+  addBox(group, [drivewayWidth, 0.018, lotDepth + 1.8], [0, 0.012, -lotDepth / 2 - 0.35], drivewayMat, {
     receiveShadow: true,
     castShadow: false,
   })
@@ -347,10 +325,6 @@ function buildPropertyEnvironment(group, env) {
     addBox(group, [0.16, wallHeight * 0.9, returnFenceDepth], [x, wallHeight * 0.45, -returnFenceDepth / 2], stoneMat)
     addBox(group, [0.22, 0.07, returnFenceDepth + 0.08], [x, wallHeight * 0.9 + 0.035, -returnFenceDepth / 2], stoneCapMat)
   })
-
-  const rearNeighbourZ = -Math.max(5.4, lotDepth * 0.54)
-  addNeighbourHouse(group, -lotWidth * 0.72, rearNeighbourZ + 0.25, 3.4, 1.55, neighbourWallMat, roofMat, glassMat)
-  addNeighbourHouse(group, lotWidth * 0.72, rearNeighbourZ - 0.35, 3.7, 1.65, neighbourWallMat, roofMat, glassMat)
 
   addBox(group, [0.28, 0.42, 0.16], [-w / 2 - 0.86, 0.36, 1.15], new THREE.MeshStandardMaterial({
     color: 0x1f2933,
@@ -396,17 +370,6 @@ function buildPropertyEnvironment(group, env) {
   })
 }
 
-
-function addNeighbourHouse(group, x, z, width, height, wallMat, roofMat, glassMat) {
-  addBox(group, [width, height, 2.0], [x, height / 2, z], wallMat)
-  addBox(group, [width + 0.35, 0.2, 2.3], [x, height + 0.2, z], roofMat, {
-    rotation: [0.08, 0, 0],
-  })
-  addBox(group, [0.62, 0.88, 0.06], [x, 0.46, z + 1.03], roofMat)
-  ;[-0.28, 0.28].forEach((offset) => {
-    addBox(group, [0.48, 0.42, 0.06], [x + offset * width, 0.98, z + 1.04], glassMat)
-  })
-}
 
 function addShrub(group, x, z, radius, mat) {
   const shrub = new THREE.Mesh(new THREE.SphereGeometry(radius, 12, 8), mat)

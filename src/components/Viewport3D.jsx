@@ -7,19 +7,17 @@ import { clearGroup } from '../three/modelLoader'
 
 function positionCamera(sceneState, cfg, view) {
   const { camera, controls } = sceneState
-  const targetY = cfg.height * 0.45
-  controls.target.set(0, targetY, 0)
+  const targetY = Math.max(cfg.height * 0.55, 1.2)
+  controls.target.set(0, targetY, -1.2)
 
   if (view === 'front') {
-    camera.position.set(0, cfg.height * 0.6, Math.max(cfg.width * 1.5, 5))
+    camera.position.set(0, 2.4, Math.max(cfg.width * 1.6, 6.4))
   } else if (view === 'side') {
-    camera.position.set(Math.max(cfg.width * 1.25, 5), cfg.height * 0.6, 0)
+    camera.position.set(Math.max(cfg.width * 1.8, 7), 2.5, -0.8)
   } else if (view === 'top') {
-    camera.position.set(0.01, 8, 0.01)
+    camera.position.set(0.01, 10, -0.4)
   } else {
-    const radius = 6
-    const angle = 0.4
-    camera.position.set(Math.sin(angle) * radius, 2.5, Math.cos(angle) * radius)
+    camera.position.set(6.8, 3.4, 7.2)
   }
 
   camera.lookAt(controls.target)
@@ -35,7 +33,7 @@ export default function Viewport3D({ cfg, priceStr }) {
   const loadedRef = useRef(false)
   const carRef = useRef(null)
   const houseRef = useRef(null)
-  const [carStatus, setCarStatus] = useState('idle')
+  const [sceneReady, setSceneReady] = useState(false)
 
   cfgRef.current = cfg
 
@@ -50,8 +48,16 @@ export default function Viewport3D({ cfg, priceStr }) {
     rebuildGate(s.gateGroup, cfgRef.current)
     positionCamera(s, cfgRef.current, 'persp')
 
-    carRef.current = loadCarModel(s.scene, cfgRef.current)
-    houseRef.current = loadHouseModel(s.scene, cfgRef.current)
+    setSceneReady(false)
+    const carLoad = loadCarModel(s.scene, cfgRef.current)
+    const houseLoad = loadHouseModel(s.scene, cfgRef.current)
+    carRef.current = carLoad.group
+    houseRef.current = houseLoad.group
+
+    let cancelled = false
+    Promise.allSettled([carLoad.promise, houseLoad.promise]).then(() => {
+      if (!cancelled) setSceneReady(true)
+    })
 
     const onResize = () => handleResize(canvas, s.camera, s.renderer)
     window.addEventListener('resize', onResize)
@@ -71,6 +77,7 @@ export default function Viewport3D({ cfg, priceStr }) {
       cancelAnimationFrame(frameRef.current)
       window.removeEventListener('resize', onResize)
       ro.disconnect()
+      cancelled = true
       s.controls.dispose()
       if (carRef.current) {
         clearGroup(carRef.current)
@@ -90,7 +97,7 @@ export default function Viewport3D({ cfg, priceStr }) {
       rebuildGate(sceneRef.current.gateGroup, cfg)
       updateCarModel(carRef.current, cfg)
       updateHouseModel(houseRef.current, cfg)
-      sceneRef.current.controls.target.set(0, cfg.height * 0.45, 0)
+      sceneRef.current.controls.target.set(0, Math.max(cfg.height * 0.55, 1.2), -1.2)
       sceneRef.current.controls.update()
     }
   }, [cfg])
@@ -135,49 +142,29 @@ export default function Viewport3D({ cfg, priceStr }) {
           height: '100%',
           display: 'block',
           cursor: 'grab',
+          opacity: sceneReady ? 1 : 0,
+          transition: 'opacity 0.35s ease',
         }}
       />
 
-      {carStatus === 'loading' && (
+      {!sceneReady && (
         <div
           style={{
             position: 'absolute',
-            left: '50%',
-            top: '50%',
-            transform: 'translate(-50%, -50%)',
-            background: 'rgba(10,15,13,0.82)',
-            border: '1px solid #2a332e',
-            borderRadius: 10,
+            inset: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'linear-gradient(135deg, #0a0f0d, #16221c)',
             color: '#d4a017',
-            padding: '10px 14px',
-            fontSize: '0.72rem',
-            letterSpacing: 1,
+            fontSize: '0.82rem',
+            fontWeight: 700,
+            letterSpacing: 2,
             textTransform: 'uppercase',
-            pointerEvents: 'none',
-            zIndex: 5,
+            zIndex: 20,
           }}
         >
-          Loading car model…
-        </div>
-      )}
-
-      {carStatus === 'fallback' && (
-        <div
-          style={{
-            position: 'absolute',
-            top: 72,
-            left: 14,
-            background: 'rgba(10,15,13,0.78)',
-            border: '1px solid #4b3b18',
-            borderRadius: 10,
-            color: '#d4a017',
-            padding: '8px 12px',
-            fontSize: '0.68rem',
-            pointerEvents: 'none',
-            zIndex: 5,
-          }}
-        >
-          Add /public/models/car.glb to use the GLB car model.
+          Preparing 3D scene…
         </div>
       )}
 
@@ -193,6 +180,8 @@ export default function Viewport3D({ cfg, priceStr }) {
           alignItems: 'flex-start',
           pointerEvents: 'none',
           zIndex: 6,
+          opacity: sceneReady ? 1 : 0,
+          transition: 'opacity 0.2s ease',
         }}
       >
         <div
@@ -277,6 +266,8 @@ export default function Viewport3D({ cfg, priceStr }) {
           alignItems: 'flex-end',
           pointerEvents: 'none',
           zIndex: 6,
+          opacity: sceneReady ? 1 : 0,
+          transition: 'opacity 0.2s ease',
         }}
       >
         <div style={{ fontSize: '0.68rem', color: '#6b6960' }}>

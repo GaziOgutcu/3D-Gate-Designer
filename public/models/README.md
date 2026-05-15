@@ -5,4 +5,4 @@ public/models/car.glb
 public/models/house.glb
 ```
 
-The 3D scene loads `/models/car.glb` and `/models/house.glb` at runtime. If either file is unavailable, the app silently keeps a lightweight in-scene fallback model so the configurator remains usable.
+The 3D scene loads both models before revealing the canvas. If a file is unavailable, the scene logs a warning and continues without rendering a placeholder model.

@@ -8,7 +8,6 @@ export function loadGlbModel({
   url,
   name,
   cfg,
-  buildFallback,
   updateTransform,
   normalize,
   onReady,
@@ -17,44 +16,52 @@ export function loadGlbModel({
   const group = new THREE.Group()
   group.name = name
   scene.add(group)
-
-  if (buildFallback) {
-    group.add(buildFallback())
-  }
   updateTransform?.(group, cfg)
 
-  sharedLoader.load(
-    url,
-    (gltf) => {
-      clearGroup(group)
-      const model = gltf.scene
-      prepareModel(model)
-      normalize?.(model, cfg)
-      group.add(model)
-      updateTransform?.(group, cfg)
-      onReady?.(group)
-    },
-    undefined,
-    (error) => {
-      console.warn(`Unable to load ${name} model from ${url}; using fallback geometry.`, error)
-      onError?.(error)
-    }
-  )
+  const promise = new Promise((resolve) => {
+    sharedLoader.load(
+      url,
+      (gltf) => {
+        clearGroup(group)
+        const model = gltf.scene
+        prepareModel(model)
+        normalize?.(model, cfg)
+        group.add(model)
+        updateTransform?.(group, cfg)
+        onReady?.(group)
+        resolve({ group, loaded: true })
+      },
+      undefined,
+      (error) => {
+        console.warn(`Unable to load ${name} model from ${url}; continuing without it.`, error)
+        onError?.(error)
+        resolve({ group, loaded: false, error })
+      }
+    )
+  })
 
-  return group
+  return { group, promise }
 }
 
-export function fitModelToSize(model, desiredSize) {
+export function normalizeImportedModelByBoundingBox(model, targetSize, options = {}) {
   const box = new THREE.Box3().setFromObject(model)
   const size = new THREE.Vector3()
   const center = new THREE.Vector3()
   box.getSize(size)
   box.getCenter(center)
 
-  const scaleX = desiredSize.x ? desiredSize.x / Math.max(size.x, 0.001) : Infinity
-  const scaleY = desiredSize.y ? desiredSize.y / Math.max(size.y, 0.001) : Infinity
-  const scaleZ = desiredSize.z ? desiredSize.z / Math.max(size.z, 0.001) : Infinity
-  const scale = Math.min(scaleX, scaleY, scaleZ)
+  const scales = []
+  if (targetSize.x) scales.push(targetSize.x / Math.max(size.x, 0.001))
+  if (targetSize.y) scales.push(targetSize.y / Math.max(size.y, 0.001))
+  if (targetSize.z) scales.push(targetSize.z / Math.max(size.z, 0.001))
+  if (targetSize.horizontalLength) {
+    scales.push(targetSize.horizontalLength / Math.max(size.x, size.z, 0.001))
+  }
+  if (targetSize.horizontalWidth) {
+    scales.push(targetSize.horizontalWidth / Math.max(Math.min(size.x, size.z), 0.001))
+  }
+
+  const scale = options.mode === 'cover' ? Math.max(...scales) : Math.min(...scales)
 
   model.position.sub(center)
   model.scale.setScalar(Number.isFinite(scale) ? scale : 1)
@@ -63,22 +70,12 @@ export function fitModelToSize(model, desiredSize) {
   model.position.y -= scaledBox.min.y
 }
 
+export function fitModelToSize(model, desiredSize) {
+  normalizeImportedModelByBoundingBox(model, desiredSize)
+}
 
 export function fitModelToHorizontalLength(model, desiredLength) {
-  const box = new THREE.Box3().setFromObject(model)
-  const size = new THREE.Vector3()
-  const center = new THREE.Vector3()
-  box.getSize(size)
-  box.getCenter(center)
-
-  const horizontalLength = Math.max(size.x, size.z, 0.001)
-  const scale = desiredLength / horizontalLength
-
-  model.position.sub(center)
-  model.scale.setScalar(scale)
-
-  const scaledBox = new THREE.Box3().setFromObject(model)
-  model.position.y -= scaledBox.min.y
+  normalizeImportedModelByBoundingBox(model, { horizontalLength: desiredLength })
 }
 
 export function clearGroup(group) {
