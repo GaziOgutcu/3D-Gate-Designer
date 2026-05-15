@@ -21,7 +21,7 @@ export function loadCarModel(scene, cfg, callbacks = {}) {
 export function updateCarModel(carGroup, cfg) {
   if (!carGroup) return
   const lotWidth = Math.max(cfg.width + 7, 12)
-  carGroup.position.set(Math.min(lotWidth * 0.34, 4.4), 0.04, 3.45)
+  carGroup.position.set(Math.min(lotWidth * 0.34, 4.4), 0.04, 4.25)
   carGroup.rotation.set(0, Math.PI / 2, 0)
 }
 

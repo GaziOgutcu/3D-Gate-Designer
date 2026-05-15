@@ -60,6 +60,10 @@ export function createScene(canvas) {
 
 
   const controls = new OrbitControls(camera, renderer.domElement)
+  controls.enabled = true
+  controls.enableRotate = true
+  controls.enableZoom = true
+  controls.enablePan = true
   controls.enableDamping = true
   controls.dampingFactor = 0.08
   controls.autoRotate = false

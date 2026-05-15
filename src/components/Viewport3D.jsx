@@ -3,6 +3,7 @@ import { createScene, handleResize } from '../three/scene'
 import { rebuildGate } from '../three/gateBuilder'
 import { loadCarModel, updateCarModel } from '../three/carModel'
 import { loadHouseModel, updateHouseModel } from '../three/houseModel'
+import { loadTreeModels, updateTreeModels } from '../three/treeModel'
 import { clearGroup } from '../three/modelLoader'
 
 function positionCamera(sceneState, cfg, view) {
@@ -33,6 +34,7 @@ export default function Viewport3D({ cfg, priceStr }) {
   const loadedRef = useRef(false)
   const carRef = useRef(null)
   const houseRef = useRef(null)
+  const treeRefs = useRef([])
   const [sceneReady, setSceneReady] = useState(false)
 
   cfgRef.current = cfg
@@ -51,11 +53,13 @@ export default function Viewport3D({ cfg, priceStr }) {
     setSceneReady(false)
     const carLoad = loadCarModel(s.scene, cfgRef.current)
     const houseLoad = loadHouseModel(s.scene, cfgRef.current)
+    const treeLoad = loadTreeModels(s.scene, cfgRef.current)
     carRef.current = carLoad.group
     houseRef.current = houseLoad.group
+    treeRefs.current = treeLoad.groups
 
     let cancelled = false
-    Promise.allSettled([carLoad.promise, houseLoad.promise]).then(() => {
+    Promise.allSettled([carLoad.promise, houseLoad.promise, treeLoad.promise]).then(() => {
       if (!cancelled) setSceneReady(true)
     })
 
@@ -87,6 +91,11 @@ export default function Viewport3D({ cfg, priceStr }) {
         clearGroup(houseRef.current)
         s.scene.remove(houseRef.current)
       }
+      treeRefs.current.forEach((treeGroup) => {
+        clearGroup(treeGroup)
+        s.scene.remove(treeGroup)
+      })
+      treeRefs.current = []
       s.renderer.dispose()
     }
   }, [])
@@ -97,6 +106,7 @@ export default function Viewport3D({ cfg, priceStr }) {
       rebuildGate(sceneRef.current.gateGroup, cfg)
       updateCarModel(carRef.current, cfg)
       updateHouseModel(houseRef.current, cfg)
+      updateTreeModels(treeRefs.current, cfg)
       sceneRef.current.controls.target.set(0, Math.max(cfg.height * 0.55, 1.2), -1.2)
       sceneRef.current.controls.update()
     }
@@ -142,6 +152,7 @@ export default function Viewport3D({ cfg, priceStr }) {
           height: '100%',
           display: 'block',
           cursor: 'grab',
+          pointerEvents: sceneReady ? 'auto' : 'none',
           opacity: sceneReady ? 1 : 0,
           transition: 'opacity 0.35s ease',
         }}
