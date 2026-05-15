@@ -251,10 +251,6 @@ export function rebuildGate(gateGroup, cfg) {
     buildWallMountedIntercom(gateGroup, -w / 2 - 0.48, wallHeight)
   }
 
-  // ── Side fences ──
-  buildSideFence(gateGroup, -w / 2 - pW - 0.02, -1, h, gateMat, pillarMat, lotWidth)
-  buildSideFence(gateGroup, w / 2 + pW + 0.02, 1, h, gateMat, pillarMat, lotWidth)
-
   buildNeighbourProperty(gateGroup, {
     side: -1,
     w,
@@ -402,9 +398,6 @@ function buildNeighbourProperty(group, env) {
   })
   buildPanel(group, xOffset, gateW, gateH, neighbourGateMat, 0.04, 0.03, 'horizontal')
   addBox(group, [gateW + 1.5, 0.04, 0.06], [xOffset + 0.5, 0.02, 0], neighbourPillarMat)
-  buildSideFence(group, xOffset - gateW / 2 - pW - 0.02, -1, gateH, neighbourGateMat, neighbourPillarMat, lotWidth)
-  buildSideFence(group, xOffset + gateW / 2 + pW + 0.02, 1, gateH, neighbourGateMat, neighbourPillarMat, lotWidth)
-
   if (side < 0) {
     const flowerMat = new THREE.MeshStandardMaterial({ color: 0xb65070, roughness: 0.82 })
     addBox(group, [Math.max(1.1, lawnWidth * 0.85), 0.025, 2.7], [xOffset - drivewayWidth / 2 - lawnWidth * 0.48, 0.045, -2.75], mulchMat, {
@@ -774,39 +767,5 @@ function buildPanel(group, cx, pw, h, mat, ft, fd, slatStyle) {
     p.position.set(cx, innerBot + ft / 2 + innerH / 2, 0)
     p.castShadow = true
     group.add(p)
-  }
-}
-
-// ── Side fence builder ──
-function buildSideFence(group, startX, dir, h, gateMat, pillarMat, lotWidth) {
-  const boundaryX = dir < 0 ? -lotWidth / 2 : lotWidth / 2
-  const fLen = Math.max(0.2, Math.abs(boundaryX - startX))
-  const fenceCenterX = (startX + boundaryX) / 2
-  const fenceH = Math.max(0.9, h * 0.8)
-  // End post
-  const post = new THREE.Mesh(
-    new THREE.BoxGeometry(0.06, fenceH, 0.06),
-    pillarMat
-  )
-  post.position.set(boundaryX, fenceH / 2, -0.03)
-  post.castShadow = true
-  group.add(post)
-
-  // Horizontal slats
-  const sh = 0.045
-  const gap = 0.01
-  const cnt = Math.floor(fenceH / (sh + gap))
-  for (let i = 0; i < cnt; i++) {
-    const s = new THREE.Mesh(
-      new THREE.BoxGeometry(Math.max(0.05, fLen - 0.05), sh, 0.015),
-      gateMat
-    )
-    s.position.set(
-      fenceCenterX,
-      0.1 + i * (sh + gap) + sh / 2,
-      -0.03
-    )
-    s.castShadow = true
-    group.add(s)
   }
 }
