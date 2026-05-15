@@ -11,13 +11,13 @@ function positionCamera(sceneState, cfg, view) {
   controls.target.set(0, targetY, -1.2)
 
   if (view === 'front') {
-    camera.position.set(0, 2.4, Math.max(cfg.width * 1.6, 6.4))
+    camera.position.set(0, 2.8, Math.max(cfg.width * 2.2, 9.2))
   } else if (view === 'side') {
-    camera.position.set(Math.max(cfg.width * 1.8, 7), 2.5, -0.8)
+    camera.position.set(Math.max(cfg.width * 2.4, 10), 2.8, -0.8)
   } else if (view === 'top') {
-    camera.position.set(0.01, 10, -0.4)
+    camera.position.set(0.01, 15, -0.4)
   } else {
-    camera.position.set(6.8, 3.4, 7.2)
+    camera.position.set(9.2, 4.1, 10.8)
   }
 
   camera.lookAt(controls.target)
@@ -32,7 +32,9 @@ export default function Viewport3D({ cfg, priceStr }) {
   const cfgRef = useRef(cfg)
   const loadedRef = useRef(false)
   const carRef = useRef(null)
+  const drivewayCarRef = useRef(null)
   const houseRef = useRef(null)
+  const neighborHouseRefs = useRef([])
   const [sceneReady, setSceneReady] = useState(false)
 
   cfgRef.current = cfg
@@ -50,12 +52,35 @@ export default function Viewport3D({ cfg, priceStr }) {
 
     setSceneReady(false)
     const carLoad = loadCarModel(s.scene, cfgRef.current)
+    const drivewayCarLoad = loadCarModel(s.scene, cfgRef.current, {
+      variant: 'driveway-right',
+      name: 'Neighbour driveway car',
+    })
     const houseLoad = loadHouseModel(s.scene, cfgRef.current)
+    const leftHouseLoad = loadHouseModel(s.scene, cfgRef.current, {
+      variant: 'left',
+      name: 'Left neighbour house',
+    })
+    const rightHouseLoad = loadHouseModel(s.scene, cfgRef.current, {
+      variant: 'right',
+      name: 'Right neighbour house',
+    })
     carRef.current = carLoad.group
+    drivewayCarRef.current = drivewayCarLoad.group
     houseRef.current = houseLoad.group
+    neighborHouseRefs.current = [
+      { group: leftHouseLoad.group, variant: 'left' },
+      { group: rightHouseLoad.group, variant: 'right' },
+    ]
 
     let cancelled = false
-    Promise.allSettled([carLoad.promise, houseLoad.promise]).then(() => {
+    Promise.allSettled([
+      carLoad.promise,
+      drivewayCarLoad.promise,
+      houseLoad.promise,
+      leftHouseLoad.promise,
+      rightHouseLoad.promise,
+    ]).then(() => {
       if (!cancelled) setSceneReady(true)
     })
 
@@ -83,10 +108,18 @@ export default function Viewport3D({ cfg, priceStr }) {
         clearGroup(carRef.current)
         s.scene.remove(carRef.current)
       }
+      if (drivewayCarRef.current) {
+        clearGroup(drivewayCarRef.current)
+        s.scene.remove(drivewayCarRef.current)
+      }
       if (houseRef.current) {
         clearGroup(houseRef.current)
         s.scene.remove(houseRef.current)
       }
+      neighborHouseRefs.current.forEach(({ group }) => {
+        clearGroup(group)
+        s.scene.remove(group)
+      })
       s.renderer.dispose()
     }
   }, [])
@@ -96,7 +129,9 @@ export default function Viewport3D({ cfg, priceStr }) {
     if (sceneRef.current) {
       rebuildGate(sceneRef.current.gateGroup, cfg)
       updateCarModel(carRef.current, cfg)
+      updateCarModel(drivewayCarRef.current, cfg, 'driveway-right')
       updateHouseModel(houseRef.current, cfg)
+      neighborHouseRefs.current.forEach(({ group, variant }) => updateHouseModel(group, cfg, variant))
       sceneRef.current.controls.target.set(0, Math.max(cfg.height * 0.55, 1.2), -1.2)
       sceneRef.current.controls.update()
     }
