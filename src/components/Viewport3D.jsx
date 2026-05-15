@@ -37,9 +37,12 @@ export default function Viewport3D({ cfg, priceStr }) {
   const houseRef = useRef(null)
   const neighborHouseRefs = useRef([])
   const rubbishRefs = useRef([])
+  const gateAnimationEnabledRef = useRef(false)
   const [sceneReady, setSceneReady] = useState(false)
+  const [gateAnimationEnabled, setGateAnimationEnabled] = useState(false)
 
   cfgRef.current = cfg
+  gateAnimationEnabledRef.current = gateAnimationEnabled
 
   // Init scene once
   useEffect(() => {
@@ -101,7 +104,12 @@ export default function Viewport3D({ cfg, priceStr }) {
 
     const animate = () => {
       frameRef.current = requestAnimationFrame(animate)
-      updateGateAnimation(s.gateGroup, cfgRef.current, performance.now() * 0.001)
+      updateGateAnimation(
+        s.gateGroup,
+        cfgRef.current,
+        performance.now() * 0.001,
+        gateAnimationEnabledRef.current
+      )
       s.controls.update()
       s.renderer.render(s.scene, s.camera)
     }
@@ -155,6 +163,10 @@ export default function Viewport3D({ cfg, priceStr }) {
     if (sceneRef.current) {
       positionCamera(sceneRef.current, cfg, view)
     }
+  }
+
+  const toggleGateAnimation = () => {
+    setGateAnimationEnabled((enabled) => !enabled)
   }
 
   const viewBtnStyle = {
@@ -287,6 +299,22 @@ export default function Viewport3D({ cfg, priceStr }) {
         </div>
 
         <div style={{ display: 'flex', gap: 5, pointerEvents: 'auto' }}>
+          <button
+            onClick={toggleGateAnimation}
+            aria-pressed={gateAnimationEnabled}
+            style={{
+              ...viewBtnStyle,
+              width: 'auto',
+              padding: '0 12px',
+              color: gateAnimationEnabled ? '#0a0f0d' : '#9a9890',
+              background: gateAnimationEnabled
+                ? 'linear-gradient(135deg, #b8860b, #d4a017)'
+                : 'rgba(10,15,13,0.85)',
+              borderColor: gateAnimationEnabled ? '#d4a017' : '#2a332e',
+            }}
+          >
+            {gateAnimationEnabled ? 'Stop gate' : 'Open gate'}
+          </button>
           {[
             ['3D', 'persp'],
             ['F', 'front'],

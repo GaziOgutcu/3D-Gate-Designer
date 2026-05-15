@@ -290,10 +290,10 @@ export function rebuildGate(gateGroup, cfg) {
   })
 }
 
-export function updateGateAnimation(gateGroup, cfg, timeSeconds = 0) {
+export function updateGateAnimation(gateGroup, cfg, timeSeconds = 0, animationEnabled = false) {
   if (!gateGroup || !cfg) return
 
-  const openAmount = (Math.sin(timeSeconds * 0.85) + 1) / 2
+  const openAmount = animationEnabled ? (Math.sin(timeSeconds * 0.85) + 1) / 2 : 0
   const easedOpenAmount = openAmount * openAmount * (3 - 2 * openAmount)
 
   gateGroup.traverse((child) => {
