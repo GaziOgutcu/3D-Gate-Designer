@@ -209,6 +209,144 @@ export function rebuildGate(gateGroup, cfg) {
   // ── Side fences ──
   buildSideFence(gateGroup, -w / 2 - pW - 0.02, -1, h, gateMat, pillarMat, lotWidth)
   buildSideFence(gateGroup, w / 2 + pW + 0.02, 1, h, gateMat, pillarMat, lotWidth)
+
+  buildNeighbourProperty(gateGroup, {
+    side: -1,
+    w,
+    h,
+    lotWidth,
+    lotDepth,
+    wallHeight,
+    gateMat,
+    pillarMat,
+    stoneMat,
+    stoneCapMat,
+    drivewayMat,
+    lawnMat,
+    mulchMat,
+    leafMat,
+    trunkMat,
+  })
+  buildNeighbourProperty(gateGroup, {
+    side: 1,
+    w,
+    h,
+    lotWidth,
+    lotDepth,
+    wallHeight,
+    gateMat,
+    pillarMat,
+    stoneMat,
+    stoneCapMat,
+    drivewayMat,
+    lawnMat,
+    mulchMat,
+    leafMat,
+    trunkMat,
+  })
+}
+
+
+function buildNeighbourProperty(group, env) {
+  const {
+    side,
+    w,
+    h,
+    lotWidth,
+    lotDepth,
+    wallHeight,
+    gateMat,
+    pillarMat,
+    stoneMat,
+    stoneCapMat,
+    drivewayMat,
+    lawnMat,
+    mulchMat,
+    leafMat,
+    trunkMat,
+  } = env
+  const xOffset = side * (lotWidth + 1.2)
+  const drivewayWidth = Math.max(w + 1.1, 3.2)
+  const lawnWidth = Math.max(1.4, (lotWidth - drivewayWidth) / 2 - 0.35)
+  const wallDepth = 0.2
+  const sideWallLength = Math.max(2.2, (lotWidth - w) / 2 - 0.25)
+  const wallY = wallHeight / 2
+  const leftWallCenter = xOffset - w / 2 - sideWallLength / 2 - 0.18
+  const rightWallCenter = xOffset + w / 2 + sideWallLength / 2 + 0.18
+  const neighbourGateMat = gateMat.clone()
+  neighbourGateMat.color.offsetHSL(side < 0 ? 0.03 : -0.04, -0.16, side < 0 ? 0.12 : -0.05)
+  neighbourGateMat.roughness = Math.min(0.85, neighbourGateMat.roughness + 0.1)
+  const neighbourPillarMat = pillarMat.clone()
+  neighbourPillarMat.color.offsetHSL(0, -0.2, side < 0 ? 0.16 : 0.06)
+
+  addBox(group, [drivewayWidth, 0.018, lotDepth + 1.8], [xOffset, 0.012, -lotDepth / 2 - 0.35], drivewayMat, {
+    receiveShadow: true,
+    castShadow: false,
+  })
+  addBox(group, [drivewayWidth + 0.55, 0.06, 1.35], [xOffset, 0.07, 0.72], drivewayMat, {
+    receiveShadow: true,
+    castShadow: false,
+  })
+  addBox(group, [lawnWidth, 0.015, lotDepth + 1.2], [xOffset - (drivewayWidth + lawnWidth) / 2 - 0.2, 0.02, -lotDepth / 2], lawnMat, {
+    receiveShadow: true,
+    castShadow: false,
+  })
+  addBox(group, [lawnWidth, 0.015, lotDepth + 1.2], [xOffset + (drivewayWidth + lawnWidth) / 2 + 0.2, 0.02, -lotDepth / 2], lawnMat, {
+    receiveShadow: true,
+    castShadow: false,
+  })
+
+  addBox(group, [sideWallLength, wallHeight, wallDepth], [leftWallCenter, wallY, 0.08], stoneMat)
+  addBox(group, [sideWallLength, wallHeight, wallDepth], [rightWallCenter, wallY, 0.08], stoneMat)
+  addBox(group, [sideWallLength + 0.12, 0.08, wallDepth + 0.08], [leftWallCenter, wallHeight + 0.04, 0.08], stoneCapMat)
+  addBox(group, [sideWallLength + 0.12, 0.08, wallDepth + 0.08], [rightWallCenter, wallHeight + 0.04, 0.08], stoneCapMat)
+
+  const returnFenceDepth = Math.max(4, lotDepth * 0.55)
+  ;[-1, 1].forEach((fenceSide) => {
+    const x = xOffset + fenceSide * (lotWidth / 2)
+    addBox(group, [0.16, wallHeight * 0.9, returnFenceDepth], [x, wallHeight * 0.45, -returnFenceDepth / 2], stoneMat)
+    addBox(group, [0.22, 0.07, returnFenceDepth + 0.08], [x, wallHeight * 0.9 + 0.035, -returnFenceDepth / 2], stoneCapMat)
+  })
+
+  const pW = 0.12
+  const pH = h + 0.3
+  const pillarGeo = new THREE.BoxGeometry(pW, pH, pW)
+  const capGeo = new THREE.BoxGeometry(pW + 0.06, 0.05, pW + 0.06)
+  ;[-1, 1].forEach((postSide) => {
+    const x = xOffset + postSide * (w / 2 + pW / 2)
+    const post = new THREE.Mesh(pillarGeo, neighbourPillarMat)
+    post.position.set(x, pH / 2, 0)
+    post.castShadow = true
+    group.add(post)
+    const cap = new THREE.Mesh(capGeo, neighbourPillarMat)
+    cap.position.set(x, pH + 0.025, 0)
+    cap.castShadow = true
+    group.add(cap)
+  })
+  buildPanel(group, xOffset, w, h, neighbourGateMat, 0.04, 0.03, side < 0 ? 'vertical' : 'horizontal')
+  buildSideFence(group, xOffset - w / 2 - pW - 0.02, -1, h, neighbourGateMat, neighbourPillarMat, lotWidth)
+  buildSideFence(group, xOffset + w / 2 + pW + 0.02, 1, h, neighbourGateMat, neighbourPillarMat, lotWidth)
+
+  if (side < 0) {
+    const flowerMat = new THREE.MeshStandardMaterial({ color: 0xb65070, roughness: 0.82 })
+    addBox(group, [Math.max(1.1, lawnWidth * 0.85), 0.025, 2.7], [xOffset - drivewayWidth / 2 - lawnWidth * 0.48, 0.045, -2.75], mulchMat, {
+      receiveShadow: true,
+      castShadow: false,
+    })
+    for (let i = 0; i < 7; i++) {
+      const z = -3.75 + i * 0.35
+      addShrub(group, xOffset - drivewayWidth / 2 - lawnWidth * 0.48 + (i % 2) * 0.22, z, 0.13, i % 3 === 0 ? flowerMat : leafMat)
+    }
+    addTree(group, xOffset + drivewayWidth / 2 + lawnWidth * 0.42, -3.15, 1.05, trunkMat, leafMat)
+  } else {
+    const lightLeafMat = new THREE.MeshStandardMaterial({ color: 0x6f8f3b, roughness: 0.86 })
+    addBox(group, [Math.max(1.2, lawnWidth * 0.75), 0.025, 1.35], [xOffset + drivewayWidth / 2 + lawnWidth * 0.46, 0.045, -2.15], mulchMat, {
+      receiveShadow: true,
+      castShadow: false,
+    })
+    ;[-0.38, 0, 0.38].forEach((dz, i) => addShrub(group, xOffset + drivewayWidth / 2 + lawnWidth * 0.46 + i * 0.12, -2.15 + dz, 0.2, lightLeafMat))
+    addTree(group, xOffset - drivewayWidth / 2 - lawnWidth * 0.4, -4.0, 0.82, trunkMat, lightLeafMat)
+  }
 }
 
 function disposeGroup(group) {
@@ -269,7 +407,7 @@ function buildPropertyEnvironment(group, env) {
   const streetZ = 3.35
   const streetDepth = 5.6
   const sidewalkZ = 0.82
-  const streetWidth = lotWidth + 7
+  const streetWidth = lotWidth * 3 + 12
 
   addBox(group, [streetWidth, 0.035, streetDepth], [0, 0.018, streetZ], roadAsphaltMat, {
     receiveShadow: true,
