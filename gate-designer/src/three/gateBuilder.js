@@ -67,7 +67,7 @@ export function rebuildGate(gateGroup, cfg) {
     color: 0x6a442b,
     roughness: 0.9,
   })
-  const asphaltMat = new THREE.MeshStandardMaterial({
+  const roadAsphaltMat = new THREE.MeshStandardMaterial({
     color: 0x242424,
     roughness: 0.96,
     metalness: 0,
@@ -101,7 +101,7 @@ export function rebuildGate(gateGroup, cfg) {
     mulchMat,
     leafMat,
     trunkMat,
-    asphaltMat,
+    roadAsphaltMat,
     curbMat,
     lineMat,
     tyreMat,
@@ -259,7 +259,7 @@ function buildPropertyEnvironment(group, env) {
     mulchMat,
     leafMat,
     trunkMat,
-    asphaltMat,
+    roadAsphaltMat,
     curbMat,
     lineMat,
     tyreMat,
@@ -271,7 +271,7 @@ function buildPropertyEnvironment(group, env) {
   const sidewalkZ = 0.82
   const streetWidth = lotWidth + 7
 
-  addBox(group, [streetWidth, 0.035, streetDepth], [0, 0.018, streetZ], asphaltMat, {
+  addBox(group, [streetWidth, 0.035, streetDepth], [0, 0.018, streetZ], roadAsphaltMat, {
     receiveShadow: true,
     castShadow: false,
   })
