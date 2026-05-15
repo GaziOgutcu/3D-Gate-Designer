@@ -33,6 +33,7 @@ export default function Viewport3D({ cfg, priceStr }) {
   const cfgRef = useRef(cfg)
   const loadedRef = useRef(false)
   const carRef = useRef(null)
+  const drivewayCarRef = useRef(null)
   const houseRef = useRef(null)
   const neighborHouseRefs = useRef([])
   const rubbishRefs = useRef([])
@@ -53,6 +54,10 @@ export default function Viewport3D({ cfg, priceStr }) {
 
     setSceneReady(false)
     const carLoad = loadCarModel(s.scene, cfgRef.current)
+    const drivewayCarLoad = loadCarModel(s.scene, cfgRef.current, {
+      variant: 'driveway-right',
+      name: 'Neighbour driveway car',
+    })
     const houseLoad = loadHouseModel(s.scene, cfgRef.current)
     const greenRubbishLoad = loadRubbishModel(s.scene, cfgRef.current, {
       variant: 'green-bin',
@@ -71,6 +76,7 @@ export default function Viewport3D({ cfg, priceStr }) {
       name: 'Right neighbour house',
     })
     carRef.current = carLoad.group
+    drivewayCarRef.current = drivewayCarLoad.group
     houseRef.current = houseLoad.group
     rubbishRefs.current = [
       { group: greenRubbishLoad.group, variant: 'green-bin' },
@@ -117,6 +123,10 @@ export default function Viewport3D({ cfg, priceStr }) {
         clearGroup(carRef.current)
         s.scene.remove(carRef.current)
       }
+      if (drivewayCarRef.current) {
+        clearGroup(drivewayCarRef.current)
+        s.scene.remove(drivewayCarRef.current)
+      }
       if (houseRef.current) {
         clearGroup(houseRef.current)
         s.scene.remove(houseRef.current)
@@ -138,6 +148,7 @@ export default function Viewport3D({ cfg, priceStr }) {
     if (sceneRef.current) {
       rebuildGate(sceneRef.current.gateGroup, cfg)
       updateCarModel(carRef.current, cfg)
+      updateCarModel(drivewayCarRef.current, cfg, 'driveway-right')
       updateHouseModel(houseRef.current, cfg)
       rubbishRefs.current.forEach(({ group, variant }) => updateRubbishModel(group, cfg, variant))
       neighborHouseRefs.current.forEach(({ group, variant }) => updateHouseModel(group, cfg, variant))
