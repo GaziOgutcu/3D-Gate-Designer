@@ -1,12 +1,12 @@
 import { loadGlbModel, normalizeImportedModelByBoundingBox } from './modelLoader'
 
 const HOUSE_MODEL_URL = '/models/house.glb'
-const HOUSE_WIDTH_METERS = 8.4
-const HOUSE_HEIGHT_METERS = 4.35
-const HOUSE_DEPTH_METERS = 5.8
-const HOUSE_FRONT_YARD_RATIO = 0.3
-const HOUSE_MIN_FRONT_YARD_METERS = 3.8
-const HOUSE_MAX_FRONT_YARD_METERS = 4.6
+const HOUSE_WIDTH_METERS = 11.0
+const HOUSE_HEIGHT_METERS = 5.25
+const HOUSE_DEPTH_METERS = 7.4
+const HOUSE_FRONT_YARD_RATIO = 0.42
+const HOUSE_MIN_FRONT_YARD_METERS = 5.6
+const HOUSE_MAX_FRONT_YARD_METERS = 6.9
 
 function getLotMetrics(cfg, side) {
   const lotWidth = Math.max(cfg.width + 7, 12)
@@ -58,7 +58,7 @@ export function updateHouseModel(houseGroup, cfg, variant = 'main') {
   )
 
   houseGroup.position.set(xOffset, 0, houseCenterZ)
-  houseGroup.rotation.set(0, 0, 0)
+  houseGroup.rotation.set(0, Math.PI / 2, 0)
 }
 
 function normalizeHouseModel(model) {
