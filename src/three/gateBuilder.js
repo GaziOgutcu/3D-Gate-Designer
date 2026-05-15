@@ -2,8 +2,6 @@ import * as THREE from 'three'
 import { FIXED_DRIVEWAY_WIDTH, FIXED_LOT_DEPTH, FIXED_LOT_WIDTH, getFixedLotOffset } from './lotLayout'
 
 const NEIGHBOUR_GATE_WIDTH = 4.0
-const NEIGHBOUR_GATE_HEIGHT = 1.8
-const NEIGHBOUR_GATE_COLOR = 0x1a1a1a
 
 
 /**
@@ -330,7 +328,6 @@ function buildNeighbourProperty(group, env) {
   } = env
   const xOffset = getFixedLotOffset(side)
   const gateW = NEIGHBOUR_GATE_WIDTH
-  const gateH = NEIGHBOUR_GATE_HEIGHT
   const drivewayWidth = Math.max(gateW + 1.1, 3.2)
   const lawnWidth = Math.max(1.4, (lotWidth - drivewayWidth) / 2 - 0.35)
   const wallDepth = 0.2
@@ -338,17 +335,6 @@ function buildNeighbourProperty(group, env) {
   const wallY = wallHeight / 2
   const leftWallCenter = xOffset - gateW / 2 - sideWallLength / 2 - 0.18
   const rightWallCenter = xOffset + gateW / 2 + sideWallLength / 2 + 0.18
-  const neighbourGateMat = new THREE.MeshStandardMaterial({
-    color: NEIGHBOUR_GATE_COLOR,
-    roughness: 0.35,
-    metalness: 0.85,
-  })
-  const neighbourPillarMat = new THREE.MeshStandardMaterial({
-    color: 0x333333,
-    roughness: 0.5,
-    metalness: 0.6,
-  })
-
   addBox(group, [drivewayWidth, 0.018, lotDepth + 6.2], [xOffset, 0.012, -lotDepth / 2 - 2.55], drivewayMat, {
     receiveShadow: true,
     castShadow: false,
@@ -381,23 +367,8 @@ function buildNeighbourProperty(group, env) {
   addBox(group, [lotWidth + 0.16, wallHeight * 0.9, wallDepth], [xOffset, wallHeight * 0.45, rearWallZ], stoneMat)
   addBox(group, [lotWidth + 0.28, 0.07, wallDepth + 0.08], [xOffset, wallHeight * 0.9 + 0.035, rearWallZ], stoneCapMat)
 
-  const pW = 0.12
-  const pH = gateH + 0.3
-  const pillarGeo = new THREE.BoxGeometry(pW, pH, pW)
-  const capGeo = new THREE.BoxGeometry(pW + 0.06, 0.05, pW + 0.06)
-  ;[-1, 1].forEach((postSide) => {
-    const x = xOffset + postSide * (gateW / 2 + pW / 2)
-    const post = new THREE.Mesh(pillarGeo, neighbourPillarMat)
-    post.position.set(x, pH / 2, 0)
-    post.castShadow = true
-    group.add(post)
-    const cap = new THREE.Mesh(capGeo, neighbourPillarMat)
-    cap.position.set(x, pH + 0.025, 0)
-    cap.castShadow = true
-    group.add(cap)
-  })
-  buildPanel(group, xOffset, gateW, gateH, neighbourGateMat, 0.04, 0.03, 'horizontal')
-  addBox(group, [gateW + 1.5, 0.04, 0.06], [xOffset + 0.5, 0.02, 0], neighbourPillarMat)
+  addBox(group, [gateW, wallHeight, wallDepth], [xOffset, wallY, 0.08], stoneMat)
+  addBox(group, [gateW + 0.12, 0.08, wallDepth + 0.08], [xOffset, wallHeight + 0.04, 0.08], stoneCapMat)
   if (side < 0) {
     const flowerMat = new THREE.MeshStandardMaterial({ color: 0xb65070, roughness: 0.82 })
     addBox(group, [Math.max(1.1, lawnWidth * 0.85), 0.025, 2.7], [xOffset - drivewayWidth / 2 - lawnWidth * 0.48, 0.045, -2.75], mulchMat, {
