@@ -1,3 +1,4 @@
+import { FIXED_LOT_DEPTH, getFixedLotOffset } from './lotLayout'
 import { loadGlbModel, normalizeImportedModelByBoundingBox } from './modelLoader'
 
 const HOUSE_MODEL_URL = '/models/house.glb'
@@ -9,8 +10,7 @@ const HOUSE_MIN_FRONT_YARD_METERS = 5.6
 const HOUSE_MAX_FRONT_YARD_METERS = 6.9
 
 function getLotMetrics(cfg, side) {
-  const lotWidth = Math.max(cfg.width + 7, 12)
-  const lotDepth = Math.max(14, cfg.width * 2.1)
+  const lotDepth = FIXED_LOT_DEPTH
   const lawnDepth = lotDepth + 1.2
   const lawnCenterZ = -lotDepth / 2
   const drivewayDepth = lotDepth + 6.2
@@ -18,7 +18,7 @@ function getLotMetrics(cfg, side) {
   const grassFrontBoundaryZ = lawnCenterZ + lawnDepth / 2
   const drivewayFrontBoundaryZ = drivewayCenterZ + drivewayDepth / 2
   const frontBoundaryZ = Math.min(grassFrontBoundaryZ, drivewayFrontBoundaryZ)
-  const xOffset = side * (lotWidth + 1.2)
+  const xOffset = getFixedLotOffset(side)
 
   return {
     lotDepth,

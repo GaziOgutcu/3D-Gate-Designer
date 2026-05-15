@@ -1,4 +1,4 @@
-import * as THREE from 'three'
+import { FIXED_LOT_WIDTH } from './lotLayout'
 import { loadGlbModel, normalizeImportedModelByBoundingBox } from './modelLoader'
 
 const RUBBISH_MODEL_URL = '/models/rubbish.glb'
@@ -23,7 +23,7 @@ export function loadRubbishModel(scene, cfg, callbacks = {}) {
 export function updateRubbishModel(rubbishGroup, cfg) {
   if (!rubbishGroup) return
 
-  const lotWidth = Math.max(cfg.width + 7, 12)
+  const lotWidth = FIXED_LOT_WIDTH
   const binScale = 10
   const binSpacing = 0.66
   const binGroupX = -lotWidth / 2 + 1.45

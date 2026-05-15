@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { FIXED_DRIVEWAY_WIDTH, FIXED_LOT_DEPTH, FIXED_LOT_WIDTH, getFixedLotOffset } from './lotLayout'
 
 const NEIGHBOUR_GATE_WIDTH = 4.0
 const NEIGHBOUR_GATE_HEIGHT = 1.8
@@ -15,8 +16,8 @@ export function rebuildGate(gateGroup, cfg) {
   const w = cfg.width
   const h = cfg.height
   const color = new THREE.Color(cfg.color)
-  const lotWidth = Math.max(w + 7, 12)
-  const lotDepth = Math.max(14, w * 2.1)
+  const lotWidth = FIXED_LOT_WIDTH
+  const lotDepth = FIXED_LOT_DEPTH
   const wallHeight = Math.max(1.6, Math.min(1.8, h + 0.05))
 
   // ── Materials ──
@@ -331,7 +332,7 @@ function buildNeighbourProperty(group, env) {
     leafMat,
     trunkMat,
   } = env
-  const xOffset = side * (lotWidth + 1.2)
+  const xOffset = getFixedLotOffset(side)
   const gateW = NEIGHBOUR_GATE_WIDTH
   const gateH = NEIGHBOUR_GATE_HEIGHT
   const drivewayWidth = Math.max(gateW + 1.1, 3.2)
@@ -479,7 +480,7 @@ function buildPropertyEnvironment(group, env) {
     lineMat,
   } = env
 
-  const drivewayWidth = Math.max(w + 1.1, 3.2)
+  const drivewayWidth = FIXED_DRIVEWAY_WIDTH
   const streetZ = 3.35
   const streetDepth = 5.6
   const sidewalkZ = 0.82
@@ -778,14 +779,16 @@ function buildPanel(group, cx, pw, h, mat, ft, fd, slatStyle) {
 
 // ── Side fence builder ──
 function buildSideFence(group, startX, dir, h, gateMat, pillarMat, lotWidth) {
-  const fLen = Math.max(2.2, lotWidth * 0.22)
+  const boundaryX = dir < 0 ? -lotWidth / 2 : lotWidth / 2
+  const fLen = Math.max(0.2, Math.abs(boundaryX - startX))
+  const fenceCenterX = (startX + boundaryX) / 2
   const fenceH = Math.max(0.9, h * 0.8)
   // End post
   const post = new THREE.Mesh(
     new THREE.BoxGeometry(0.06, fenceH, 0.06),
     pillarMat
   )
-  post.position.set(startX + dir * fLen, fenceH / 2, -0.03)
+  post.position.set(boundaryX, fenceH / 2, -0.03)
   post.castShadow = true
   group.add(post)
 
@@ -795,11 +798,11 @@ function buildSideFence(group, startX, dir, h, gateMat, pillarMat, lotWidth) {
   const cnt = Math.floor(fenceH / (sh + gap))
   for (let i = 0; i < cnt; i++) {
     const s = new THREE.Mesh(
-      new THREE.BoxGeometry(fLen - 0.05, sh, 0.015),
+      new THREE.BoxGeometry(Math.max(0.05, fLen - 0.05), sh, 0.015),
       gateMat
     )
     s.position.set(
-      startX + (dir * fLen) / 2,
+      fenceCenterX,
       0.1 + i * (sh + gap) + sh / 2,
       -0.03
     )
