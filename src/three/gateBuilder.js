@@ -87,6 +87,31 @@ export function rebuildGate(gateGroup, cfg) {
     roughness: 0.7,
     metalness: 0.05,
   })
+  const asphaltMat = new THREE.MeshStandardMaterial({
+    color: 0x242424,
+    roughness: 0.96,
+    metalness: 0,
+  })
+  const curbMat = new THREE.MeshStandardMaterial({
+    color: 0xc8c3b8,
+    roughness: 0.82,
+    metalness: 0,
+  })
+  const lineMat = new THREE.MeshStandardMaterial({
+    color: 0xf3dc6a,
+    roughness: 0.55,
+    metalness: 0,
+  })
+  const neighbourWallMat = new THREE.MeshStandardMaterial({
+    color: 0xc8bba5,
+    roughness: 0.8,
+    metalness: 0,
+  })
+  const tyreMat = new THREE.MeshStandardMaterial({
+    color: 0x111111,
+    roughness: 0.7,
+    metalness: 0.05,
+  })
 
   buildPropertyEnvironment(gateGroup, {
     w,
