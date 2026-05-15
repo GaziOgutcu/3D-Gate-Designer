@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 
 export function createScene(canvas) {
   const scene = new THREE.Scene()
@@ -58,11 +59,25 @@ export function createScene(canvas) {
   scene.add(ground)
 
 
+  const controls = new OrbitControls(camera, renderer.domElement)
+  controls.enabled = true
+  controls.enableRotate = true
+  controls.enableZoom = true
+  controls.enablePan = true
+  controls.enableDamping = true
+  controls.dampingFactor = 0.08
+  controls.autoRotate = false
+  controls.minDistance = 3
+  controls.maxDistance = 14
+  controls.maxPolarAngle = Math.PI * 0.48
+  controls.target.set(0, 1, 0)
+  controls.update()
+
   // ── Gate group (will be rebuilt on config change) ──
   const gateGroup = new THREE.Group()
   scene.add(gateGroup)
 
-  return { scene, camera, renderer, gateGroup }
+  return { scene, camera, renderer, controls, gateGroup }
 }
 
 export function handleResize(canvas, camera, renderer) {
