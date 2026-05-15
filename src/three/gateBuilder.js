@@ -354,8 +354,6 @@ function buildPropertyEnvironment(group, env) {
     }
   })
 
-  addTree(group, -Math.max(w / 2 + 2.0, lotWidth * 0.34), -4.0, 0.85 + h * 0.18, trunkMat, leafMat)
-  addTree(group, Math.max(w / 2 + 2.0, lotWidth * 0.34), -5.4, 0.75 + h * 0.16, trunkMat, leafMat)
 
 
   ;[-1, 1].forEach((side) => {
