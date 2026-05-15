@@ -1,17 +1,16 @@
 import { loadGlbModel, normalizeImportedModelByBoundingBox } from './modelLoader'
 
 const HOUSE_MODEL_URL = '/models/house2.glb'
-const HOUSE_WIDTH_METERS = 7.6
+const HOUSE_WIDTH_METERS = 8.4
 const HOUSE_HEIGHT_METERS = 4.35
 const HOUSE_DEPTH_METERS = 5.8
-const HOUSE_FRONT_YARD_RATIO = 0.36
-const HOUSE_MIN_FRONT_YARD_METERS = 4.6
-const HOUSE_MAX_FRONT_YARD_METERS = 5.8
+const HOUSE_FRONT_YARD_RATIO = 0.3
+const HOUSE_MIN_FRONT_YARD_METERS = 3.8
+const HOUSE_MAX_FRONT_YARD_METERS = 4.6
 
 function getLotMetrics(cfg, side) {
   const lotWidth = Math.max(cfg.width + 7, 12)
   const lotDepth = Math.max(14, cfg.width * 2.1)
-  const drivewayWidth = Math.max((side === 0 ? cfg.width : 4.0) + 1.1, 3.2)
   const lawnDepth = lotDepth + 1.2
   const lawnCenterZ = -lotDepth / 2
   const drivewayDepth = lotDepth + 6.2
@@ -24,7 +23,7 @@ function getLotMetrics(cfg, side) {
   return {
     lotDepth,
     xOffset,
-    grassFrontBoundaryZ: frontBoundaryZ,
+    frontBoundaryZ,
     grassBackBoundaryZ: lawnCenterZ - lawnDepth / 2,
   }
 }
@@ -47,19 +46,19 @@ export function updateHouseModel(houseGroup, cfg, variant = 'main') {
   if (!houseGroup) return
 
   const side = variant === 'left' ? -1 : variant === 'right' ? 1 : 0
-  const { lotDepth, xOffset, grassFrontBoundaryZ, grassBackBoundaryZ } = getLotMetrics(cfg, side)
+  const { lotDepth, xOffset, frontBoundaryZ, grassBackBoundaryZ } = getLotMetrics(cfg, side)
   const frontYardDepth = Math.min(
     HOUSE_MAX_FRONT_YARD_METERS,
     Math.max(HOUSE_MIN_FRONT_YARD_METERS, lotDepth * HOUSE_FRONT_YARD_RATIO)
   )
-  const houseFrontZ = grassFrontBoundaryZ - frontYardDepth
+  const houseFrontZ = frontBoundaryZ - frontYardDepth
   const houseCenterZ = Math.max(
     grassBackBoundaryZ + HOUSE_DEPTH_METERS / 2 + 0.35,
     houseFrontZ - HOUSE_DEPTH_METERS / 2
   )
 
-  houseGroup.position.set(xOffset, 0.02, houseCenterZ)
-  houseGroup.rotation.set(0, Math.PI * 1.5, 0)
+  houseGroup.position.set(xOffset, 0, houseCenterZ)
+  houseGroup.rotation.set(0, 0, 0)
 }
 
 function normalizeHouseModel(model) {

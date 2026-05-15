@@ -60,7 +60,7 @@ export default function Viewport3D({ cfg, priceStr }) {
     })
     const houseLoad = loadHouseModel(s.scene, cfgRef.current)
     const rubbishLoad = loadRubbishModel(s.scene, cfgRef.current, {
-      name: 'Four wheelie bin group',
+      name: 'Wheelie bin group',
     })
     const leftHouseLoad = loadHouseModel(s.scene, cfgRef.current, {
       variant: 'left',
