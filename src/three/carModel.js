@@ -11,20 +11,20 @@ function getNeighborOffset(cfg, side) {
 }
 
 export function loadCarModel(scene, cfg, callbacks = {}) {
-  const variant = callbacks.variant ?? 'street'
+  const variant = callbacks.variant ?? 'central-driveway'
   return loadGlbModel({
     scene,
     cfg,
     url: CAR_MODEL_URL,
-    name: callbacks.name ?? (variant === 'driveway-right' ? 'Right driveway car' : 'Residential street car'),
+    name: callbacks.name ?? (variant === 'driveway-right' ? 'Right driveway car' : 'Central driveway car'),
     updateTransform: (group, currentCfg) => updateCarModel(group, currentCfg, variant),
-    normalize: normalizeCarModel,
+    normalize: (model) => normalizeCarModel(model, variant),
     onReady: callbacks.onLoaded,
     onError: callbacks.onError,
   })
 }
 
-export function updateCarModel(carGroup, cfg, variant = 'street') {
+export function updateCarModel(carGroup, cfg, variant = 'central-driveway') {
   if (!carGroup) return
 
   if (variant === 'driveway-right') {
@@ -33,15 +33,43 @@ export function updateCarModel(carGroup, cfg, variant = 'street') {
     return
   }
 
-  const lotWidth = Math.max(cfg.width + 7, 12)
-  carGroup.position.set(Math.min(lotWidth * 0.34, 4.4), 0.04, 4.25)
-  carGroup.rotation.set(0, Math.PI / 2, 0)
+  carGroup.position.set(Math.min(cfg.width * 0.18, 0.65), 0.04, -2.25)
+  carGroup.rotation.set(0, 0, 0)
 }
 
-function normalizeCarModel(model) {
+function normalizeCarModel(model, variant) {
   normalizeImportedModelByBoundingBox(model, {
     y: CAR_HEIGHT_METERS,
     horizontalLength: CAR_LENGTH_METERS,
     horizontalWidth: CAR_WIDTH_METERS,
+  })
+
+  if (variant === 'central-driveway') {
+    applyWhiteCarPaint(model)
+  }
+}
+
+function applyWhiteCarPaint(model) {
+  model.traverse((child) => {
+    if (!child.isMesh || !child.material) return
+
+    const materials = Array.isArray(child.material) ? child.material : [child.material]
+    materials.forEach((sourceMaterial, index) => {
+      if (!sourceMaterial.color) return
+
+      const materialName = `${child.name ?? ''} ${sourceMaterial.name ?? ''}`.toLowerCase()
+      if (/(tyre|tire|wheel|rubber|window|glass|windscreen|windshield)/.test(materialName)) return
+
+      const whiteMaterial = sourceMaterial.clone()
+      whiteMaterial.color.set(0xf6f4ec)
+      whiteMaterial.roughness = Math.max(whiteMaterial.roughness ?? 0.35, 0.42)
+      whiteMaterial.metalness = Math.min(whiteMaterial.metalness ?? 0.2, 0.25)
+
+      if (Array.isArray(child.material)) {
+        child.material[index] = whiteMaterial
+      } else {
+        child.material = whiteMaterial
+      }
+    })
   })
 }

@@ -1,5 +1,10 @@
 import * as THREE from 'three'
 
+const NEIGHBOUR_GATE_WIDTH = 4.0
+const NEIGHBOUR_GATE_HEIGHT = 1.8
+const NEIGHBOUR_GATE_COLOR = 0x1a1a1a
+
+
 /**
  * Completely rebuilds the 3D gate geometry inside `gateGroup`
  * based on the current configuration object.
@@ -266,18 +271,25 @@ function buildNeighbourProperty(group, env) {
     trunkMat,
   } = env
   const xOffset = side * (lotWidth + 1.2)
-  const drivewayWidth = Math.max(w + 1.1, 3.2)
+  const gateW = NEIGHBOUR_GATE_WIDTH
+  const gateH = NEIGHBOUR_GATE_HEIGHT
+  const drivewayWidth = Math.max(gateW + 1.1, 3.2)
   const lawnWidth = Math.max(1.4, (lotWidth - drivewayWidth) / 2 - 0.35)
   const wallDepth = 0.2
-  const sideWallLength = Math.max(2.2, (lotWidth - w) / 2 - 0.25)
+  const sideWallLength = Math.max(2.2, (lotWidth - gateW) / 2 - 0.25)
   const wallY = wallHeight / 2
-  const leftWallCenter = xOffset - w / 2 - sideWallLength / 2 - 0.18
-  const rightWallCenter = xOffset + w / 2 + sideWallLength / 2 + 0.18
-  const neighbourGateMat = gateMat.clone()
-  neighbourGateMat.color.offsetHSL(side < 0 ? 0.03 : -0.04, -0.16, side < 0 ? 0.12 : -0.05)
-  neighbourGateMat.roughness = Math.min(0.85, neighbourGateMat.roughness + 0.1)
-  const neighbourPillarMat = pillarMat.clone()
-  neighbourPillarMat.color.offsetHSL(0, -0.2, side < 0 ? 0.16 : 0.06)
+  const leftWallCenter = xOffset - gateW / 2 - sideWallLength / 2 - 0.18
+  const rightWallCenter = xOffset + gateW / 2 + sideWallLength / 2 + 0.18
+  const neighbourGateMat = new THREE.MeshStandardMaterial({
+    color: NEIGHBOUR_GATE_COLOR,
+    roughness: 0.35,
+    metalness: 0.85,
+  })
+  const neighbourPillarMat = new THREE.MeshStandardMaterial({
+    color: 0x333333,
+    roughness: 0.5,
+    metalness: 0.6,
+  })
 
   addBox(group, [drivewayWidth, 0.018, lotDepth + 1.8], [xOffset, 0.012, -lotDepth / 2 - 0.35], drivewayMat, {
     receiveShadow: true,
@@ -309,11 +321,11 @@ function buildNeighbourProperty(group, env) {
   })
 
   const pW = 0.12
-  const pH = h + 0.3
+  const pH = gateH + 0.3
   const pillarGeo = new THREE.BoxGeometry(pW, pH, pW)
   const capGeo = new THREE.BoxGeometry(pW + 0.06, 0.05, pW + 0.06)
   ;[-1, 1].forEach((postSide) => {
-    const x = xOffset + postSide * (w / 2 + pW / 2)
+    const x = xOffset + postSide * (gateW / 2 + pW / 2)
     const post = new THREE.Mesh(pillarGeo, neighbourPillarMat)
     post.position.set(x, pH / 2, 0)
     post.castShadow = true
@@ -323,9 +335,10 @@ function buildNeighbourProperty(group, env) {
     cap.castShadow = true
     group.add(cap)
   })
-  buildPanel(group, xOffset, w, h, neighbourGateMat, 0.04, 0.03, side < 0 ? 'vertical' : 'horizontal')
-  buildSideFence(group, xOffset - w / 2 - pW - 0.02, -1, h, neighbourGateMat, neighbourPillarMat, lotWidth)
-  buildSideFence(group, xOffset + w / 2 + pW + 0.02, 1, h, neighbourGateMat, neighbourPillarMat, lotWidth)
+  buildPanel(group, xOffset, gateW, gateH, neighbourGateMat, 0.04, 0.03, 'horizontal')
+  addBox(group, [gateW + 1.5, 0.04, 0.06], [xOffset + 0.5, 0.02, 0], neighbourPillarMat)
+  buildSideFence(group, xOffset - gateW / 2 - pW - 0.02, -1, gateH, neighbourGateMat, neighbourPillarMat, lotWidth)
+  buildSideFence(group, xOffset + gateW / 2 + pW + 0.02, 1, gateH, neighbourGateMat, neighbourPillarMat, lotWidth)
 
   if (side < 0) {
     const flowerMat = new THREE.MeshStandardMaterial({ color: 0xb65070, roughness: 0.82 })
@@ -425,8 +438,10 @@ function buildPropertyEnvironment(group, env) {
     receiveShadow: true,
     castShadow: false,
   })
-  for (let i = -3; i <= 3; i++) {
-    addBox(group, [1.05, 0.012, 0.055], [i * 2.15, 0.045, streetZ + 0.18], lineMat, {
+  const laneSegmentSpacing = 2.15
+  const halfLaneSegmentCount = Math.ceil(streetWidth / laneSegmentSpacing / 2)
+  for (let i = -halfLaneSegmentCount; i <= halfLaneSegmentCount; i++) {
+    addBox(group, [1.05, 0.012, 0.055], [i * laneSegmentSpacing, 0.045, streetZ + 0.18], lineMat, {
       receiveShadow: false,
       castShadow: false,
     })
