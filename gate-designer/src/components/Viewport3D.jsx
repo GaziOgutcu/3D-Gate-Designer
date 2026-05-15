@@ -35,6 +35,7 @@ export default function Viewport3D({ cfg, priceStr }) {
   const loadedRef = useRef(false)
   const carRef = useRef(null)
   const houseRef = useRef(null)
+  const [carStatus, setCarStatus] = useState('idle')
 
   cfgRef.current = cfg
 
