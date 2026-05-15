@@ -27,10 +27,10 @@ export function updateRubbishModel(rubbishGroup, cfg) {
   const binScale = 10
   const binSpacing = 0.66
   const binGroupX = -lotWidth / 2 + 1.45
-  const binGroupZ = -0.34
+  const binGroupZ = 0.82
 
   rubbishGroup.position.set(binGroupX, 0.04, binGroupZ)
-  rubbishGroup.rotation.set(0, 0, 0)
+  rubbishGroup.rotation.set(0, Math.PI / 2, 0)
 
   rubbishGroup.userData.binScale = binScale
   rubbishGroup.userData.binSpacing = binSpacing

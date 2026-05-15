@@ -58,7 +58,7 @@ export function updateHouseModel(houseGroup, cfg, variant = 'main') {
   )
 
   houseGroup.position.set(xOffset, 0, houseCenterZ)
-  houseGroup.rotation.set(0, Math.PI / 2, 0)
+  houseGroup.rotation.set(0, Math.PI, 0)
 }
 
 function normalizeHouseModel(model) {
