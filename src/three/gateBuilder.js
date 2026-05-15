@@ -291,7 +291,7 @@ function buildNeighbourProperty(group, env) {
     metalness: 0.6,
   })
 
-  addBox(group, [drivewayWidth, 0.018, lotDepth + 1.8], [xOffset, 0.012, -lotDepth / 2 - 0.35], drivewayMat, {
+  addBox(group, [drivewayWidth, 0.018, lotDepth + 4.2], [xOffset, 0.012, -lotDepth / 2 - 1.55], drivewayMat, {
     receiveShadow: true,
     castShadow: false,
   })
@@ -447,7 +447,7 @@ function buildPropertyEnvironment(group, env) {
     })
   }
 
-  addBox(group, [drivewayWidth, 0.018, lotDepth + 1.8], [0, 0.012, -lotDepth / 2 - 0.35], drivewayMat, {
+  addBox(group, [drivewayWidth, 0.018, lotDepth + 4.2], [0, 0.012, -lotDepth / 2 - 1.55], drivewayMat, {
     receiveShadow: true,
     castShadow: false,
   })

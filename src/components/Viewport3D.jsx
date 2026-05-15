@@ -76,7 +76,6 @@ export default function Viewport3D({ cfg, priceStr }) {
     let cancelled = false
     Promise.allSettled([
       carLoad.promise,
-      drivewayCarLoad.promise,
       houseLoad.promise,
       leftHouseLoad.promise,
       rightHouseLoad.promise,

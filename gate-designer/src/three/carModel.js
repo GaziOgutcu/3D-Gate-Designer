@@ -16,9 +16,9 @@ export function loadCarModel(scene, cfg, callbacks = {}) {
     scene,
     cfg,
     url: CAR_MODEL_URL,
-    name: callbacks.name ?? (variant === 'driveway-right' ? 'Right driveway car' : 'Central driveway car'),
-    updateTransform: (group, currentCfg) => updateCarModel(group, currentCfg, variant),
-    normalize: (model) => normalizeCarModel(model, variant),
+    name: callbacks.name ?? 'Central driveway car',
+    updateTransform: updateCarModel,
+    normalize: normalizeCarModel,
     onReady: callbacks.onLoaded,
     onError: callbacks.onError,
   })
@@ -26,12 +26,6 @@ export function loadCarModel(scene, cfg, callbacks = {}) {
 
 export function updateCarModel(carGroup, cfg, variant = 'central-driveway') {
   if (!carGroup) return
-
-  if (variant === 'driveway-right') {
-    carGroup.position.set(getNeighborOffset(cfg, 1) + Math.min(cfg.width * 0.18, 0.8), 0.04, -2.05)
-    carGroup.rotation.set(0, 0, 0)
-    return
-  }
 
   carGroup.position.set(Math.min(cfg.width * 0.18, 0.65), 0.04, -2.25)
   carGroup.rotation.set(0, 0, 0)
@@ -44,9 +38,7 @@ function normalizeCarModel(model, variant) {
     horizontalWidth: CAR_WIDTH_METERS,
   })
 
-  if (variant === 'central-driveway') {
-    applyWhiteCarPaint(model)
-  }
+  applyWhiteCarPaint(model)
 }
 
 function applyWhiteCarPaint(model) {
