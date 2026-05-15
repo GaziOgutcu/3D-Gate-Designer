@@ -3,6 +3,7 @@ import { createScene, handleResize } from '../three/scene'
 import { rebuildGate } from '../three/gateBuilder'
 import { loadCarModel, updateCarModel } from '../three/carModel'
 import { loadHouseModel, updateHouseModel } from '../three/houseModel'
+import { loadRubbishModel, updateRubbishModel } from '../three/rubbishModel'
 import { clearGroup } from '../three/modelLoader'
 
 function positionCamera(sceneState, cfg, view) {
@@ -35,6 +36,7 @@ export default function Viewport3D({ cfg, priceStr }) {
   const drivewayCarRef = useRef(null)
   const houseRef = useRef(null)
   const neighborHouseRefs = useRef([])
+  const rubbishRefs = useRef([])
   const [sceneReady, setSceneReady] = useState(false)
 
   cfgRef.current = cfg
@@ -57,6 +59,14 @@ export default function Viewport3D({ cfg, priceStr }) {
       name: 'Neighbour driveway car',
     })
     const houseLoad = loadHouseModel(s.scene, cfgRef.current)
+    const greenRubbishLoad = loadRubbishModel(s.scene, cfgRef.current, {
+      variant: 'green-bin',
+      name: 'Green rubbish bin',
+    })
+    const darkRubbishLoad = loadRubbishModel(s.scene, cfgRef.current, {
+      variant: 'dark-bin',
+      name: 'Dark rubbish bin',
+    })
     const leftHouseLoad = loadHouseModel(s.scene, cfgRef.current, {
       variant: 'left',
       name: 'Left neighbour house',
@@ -68,6 +78,10 @@ export default function Viewport3D({ cfg, priceStr }) {
     carRef.current = carLoad.group
     drivewayCarRef.current = drivewayCarLoad.group
     houseRef.current = houseLoad.group
+    rubbishRefs.current = [
+      { group: greenRubbishLoad.group, variant: 'green-bin' },
+      { group: darkRubbishLoad.group, variant: 'dark-bin' },
+    ]
     neighborHouseRefs.current = [
       { group: leftHouseLoad.group, variant: 'left' },
       { group: rightHouseLoad.group, variant: 'right' },
@@ -77,6 +91,8 @@ export default function Viewport3D({ cfg, priceStr }) {
     Promise.allSettled([
       carLoad.promise,
       houseLoad.promise,
+      greenRubbishLoad.promise,
+      darkRubbishLoad.promise,
       leftHouseLoad.promise,
       rightHouseLoad.promise,
     ]).then(() => {
@@ -115,6 +131,10 @@ export default function Viewport3D({ cfg, priceStr }) {
         clearGroup(houseRef.current)
         s.scene.remove(houseRef.current)
       }
+      rubbishRefs.current.forEach(({ group }) => {
+        clearGroup(group)
+        s.scene.remove(group)
+      })
       neighborHouseRefs.current.forEach(({ group }) => {
         clearGroup(group)
         s.scene.remove(group)
@@ -130,6 +150,7 @@ export default function Viewport3D({ cfg, priceStr }) {
       updateCarModel(carRef.current, cfg)
       updateCarModel(drivewayCarRef.current, cfg, 'driveway-right')
       updateHouseModel(houseRef.current, cfg)
+      rubbishRefs.current.forEach(({ group, variant }) => updateRubbishModel(group, cfg, variant))
       neighborHouseRefs.current.forEach(({ group, variant }) => updateHouseModel(group, cfg, variant))
       sceneRef.current.controls.target.set(0, Math.max(cfg.height * 0.55, 1.2), -1.2)
       sceneRef.current.controls.update()

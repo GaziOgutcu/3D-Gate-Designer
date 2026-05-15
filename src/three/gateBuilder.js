@@ -87,12 +87,6 @@ export function rebuildGate(gateGroup, cfg) {
     roughness: 0.55,
     metalness: 0,
   })
-  const tyreMat = new THREE.MeshStandardMaterial({
-    color: 0x111111,
-    roughness: 0.7,
-    metalness: 0.05,
-  })
-
   buildPropertyEnvironment(gateGroup, {
     w,
     h,
@@ -109,7 +103,6 @@ export function rebuildGate(gateGroup, cfg) {
     roadAsphaltMat,
     curbMat,
     lineMat,
-    tyreMat,
   })
 
   // ── Pillars ──
@@ -291,7 +284,7 @@ function buildNeighbourProperty(group, env) {
     metalness: 0.6,
   })
 
-  addBox(group, [drivewayWidth, 0.018, lotDepth + 4.2], [xOffset, 0.012, -lotDepth / 2 - 1.55], drivewayMat, {
+  addBox(group, [drivewayWidth, 0.018, lotDepth + 6.2], [xOffset, 0.012, -lotDepth / 2 - 2.55], drivewayMat, {
     receiveShadow: true,
     castShadow: false,
   })
@@ -413,7 +406,6 @@ function buildPropertyEnvironment(group, env) {
     roadAsphaltMat,
     curbMat,
     lineMat,
-    tyreMat,
   } = env
 
   const drivewayWidth = Math.max(w + 1.1, 3.2)
@@ -447,7 +439,7 @@ function buildPropertyEnvironment(group, env) {
     })
   }
 
-  addBox(group, [drivewayWidth, 0.018, lotDepth + 4.2], [0, 0.012, -lotDepth / 2 - 1.55], drivewayMat, {
+  addBox(group, [drivewayWidth, 0.018, lotDepth + 6.2], [0, 0.012, -lotDepth / 2 - 2.55], drivewayMat, {
     receiveShadow: true,
     castShadow: false,
   })
@@ -485,14 +477,6 @@ function buildPropertyEnvironment(group, env) {
     metalness: 0.25,
   }))
   addCylinder(group, 0.025, 0.025, 0.45, [-w / 2 - 0.86, 0.225, 1.15], stoneCapMat, { segments: 10 })
-  ;[
-    [-lotWidth * 0.36, 2.02, 0x1d5c4c],
-    [-lotWidth * 0.36 - 0.34, 2.02, 0x28313a],
-  ].forEach(([x, z, binColor]) => {
-    addBox(group, [0.24, 0.42, 0.28], [x, 0.23, z], new THREE.MeshStandardMaterial({ color: binColor, roughness: 0.7 }))
-    addBox(group, [0.27, 0.055, 0.31], [x, 0.475, z], tyreMat)
-  })
-
   const gardenZ = -2.4
   ;[-1, 1].forEach((side) => {
     const bedX = side * (drivewayWidth / 2 + Math.max(0.45, lawnWidth * 0.32))

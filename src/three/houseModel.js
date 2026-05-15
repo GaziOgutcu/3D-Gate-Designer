@@ -1,6 +1,6 @@
 import { loadGlbModel, normalizeImportedModelByBoundingBox } from './modelLoader'
 
-const HOUSE_MODEL_URL = '/models/house.glb'
+const HOUSE_MODEL_URL = '/models/house2.glb'
 const HOUSE_SCALE_MULTIPLIER = 1.44
 const HOUSE_WIDTH_METERS = 9.5 * HOUSE_SCALE_MULTIPLIER
 const HOUSE_HEIGHT_METERS = 4.8 * HOUSE_SCALE_MULTIPLIER
