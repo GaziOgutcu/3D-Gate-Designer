@@ -1,3 +1,4 @@
+import * as THREE from 'three'
 import { loadGlbModel, normalizeImportedModelByBoundingBox } from './modelLoader'
 
 const RUBBISH_MODEL_URL = '/models/rubbish.glb'
@@ -11,7 +12,10 @@ export function loadRubbishModel(scene, cfg, callbacks = {}) {
     name: callbacks.name ?? 'Wheelie bin group',
     updateTransform: updateRubbishModel,
     normalize: normalizeRubbishModel,
-    onReady: callbacks.onLoaded,
+    onReady: (group) => {
+      buildBinRow(group)
+      callbacks.onLoaded?.(group)
+    },
     onError: callbacks.onError,
   })
 }
