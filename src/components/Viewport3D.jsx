@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { createScene, handleResize } from '../three/scene'
-import { rebuildGate } from '../three/gateBuilder'
+import { rebuildGate, updateGateAnimation } from '../three/gateBuilder'
 import { loadCarModel, updateCarModel } from '../three/carModel'
 import { loadHouseModel, updateHouseModel } from '../three/houseModel'
 import { loadRubbishModel, updateRubbishModel } from '../three/rubbishModel'
@@ -101,6 +101,7 @@ export default function Viewport3D({ cfg, priceStr }) {
 
     const animate = () => {
       frameRef.current = requestAnimationFrame(animate)
+      updateGateAnimation(s.gateGroup, cfgRef.current, performance.now() * 0.001)
       s.controls.update()
       s.renderer.render(s.scene, s.camera)
     }
