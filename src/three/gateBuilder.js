@@ -355,6 +355,7 @@ function buildPropertyEnvironment(group, env) {
   })
 
 
+
   ;[-1, 1].forEach((side) => {
     const lampX = side * (w / 2 + 0.55)
     addCylinder(group, 0.025, 0.025, 1.35, [lampX, 0.675, -0.35], stoneCapMat, { segments: 12 })
@@ -376,6 +377,24 @@ function addShrub(group, x, z, radius, mat) {
   shrub.castShadow = true
   shrub.receiveShadow = true
   group.add(shrub)
+}
+
+
+function addTree(group, x, z, scale, trunkMat, leafMat) {
+  addCylinder(group, 0.08 * scale, 0.11 * scale, 1.25 * scale, [x, 0.62 * scale, z], trunkMat, { segments: 10 })
+  const crownY = 1.28 * scale
+  ;[
+    [0, 0, 0.46],
+    [-0.22, 0.03, 0.34],
+    [0.24, 0.02, 0.36],
+    [0.06, 0.22, 0.31],
+  ].forEach(([ox, oy, r]) => {
+    const crown = new THREE.Mesh(new THREE.SphereGeometry(r * scale, 14, 10), leafMat)
+    crown.position.set(x + ox * scale, crownY + oy * scale, z + (ox * 0.2) * scale)
+    crown.castShadow = true
+    crown.receiveShadow = true
+    group.add(crown)
+  })
 }
 
 function buildWallMountedIntercom(group, x, wallHeight) {

@@ -20,8 +20,8 @@ export function loadHouseModel(scene, cfg, callbacks = {}) {
 
 export function updateHouseModel(houseGroup) {
   if (!houseGroup) return
-  houseGroup.position.set(0, 0.02, -5.8)
-  houseGroup.rotation.set(0, Math.PI / 2, 0)
+  houseGroup.position.set(0, 0.02, -7.4)
+  houseGroup.rotation.set(0, Math.PI * 1.5, 0)
 }
 
 function normalizeHouseModel(model) {
