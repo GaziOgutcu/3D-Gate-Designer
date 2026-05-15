@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { FIXED_DRIVEWAY_WIDTH, FIXED_LOT_DEPTH, FIXED_LOT_WIDTH, getFixedLotOffset } from './lotLayout'
 
 const NEIGHBOUR_GATE_WIDTH = 4.0
 const NEIGHBOUR_GATE_HEIGHT = 1.8
@@ -15,8 +16,8 @@ export function rebuildGate(gateGroup, cfg) {
   const w = cfg.width
   const h = cfg.height
   const color = new THREE.Color(cfg.color)
-  const lotWidth = Math.max(w + 7, 12)
-  const lotDepth = Math.max(14, w * 2.1)
+  const lotWidth = FIXED_LOT_WIDTH
+  const lotDepth = FIXED_LOT_DEPTH
   const wallHeight = Math.max(1.6, Math.min(1.8, h + 0.05))
 
   // ── Materials ──
@@ -136,11 +137,57 @@ export function rebuildGate(gateGroup, cfg) {
   const ft = 0.04 // frame thickness
   const fd = 0.03 // frame depth
 
-  if (cfg.gateType === 'swing-double') {
-    buildPanel(gateGroup, -w / 4, w / 2, h, gateMat, ft, fd, cfg.slatStyle)
-    buildPanel(gateGroup, w / 4, w / 2, h, gateMat, ft, fd, cfg.slatStyle)
+  if (cfg.gateType === 'sliding') {
+    buildAnimatedGatePanel(gateGroup, {
+      pivotX: 0,
+      panelCenterX: 0,
+      pw: w,
+      h,
+      mat: gateMat,
+      ft,
+      fd,
+      slatStyle: cfg.slatStyle,
+      animationType: 'sliding',
+      slideDistance: w * 0.68,
+    })
+  } else if (cfg.gateType === 'swing-double') {
+    buildAnimatedGatePanel(gateGroup, {
+      pivotX: -w / 2,
+      panelCenterX: w / 4,
+      pw: w / 2,
+      h,
+      mat: gateMat,
+      ft,
+      fd,
+      slatStyle: cfg.slatStyle,
+      animationType: 'swing',
+      swingDirection: -1,
+    })
+    buildAnimatedGatePanel(gateGroup, {
+      pivotX: w / 2,
+      panelCenterX: -w / 4,
+      pw: w / 2,
+      h,
+      mat: gateMat,
+      ft,
+      fd,
+      slatStyle: cfg.slatStyle,
+      animationType: 'swing',
+      swingDirection: 1,
+    })
   } else {
-    buildPanel(gateGroup, 0, w, h, gateMat, ft, fd, cfg.slatStyle)
+    buildAnimatedGatePanel(gateGroup, {
+      pivotX: -w / 2,
+      panelCenterX: w / 2,
+      pw: w,
+      h,
+      mat: gateMat,
+      ft,
+      fd,
+      slatStyle: cfg.slatStyle,
+      animationType: 'swing',
+      swingDirection: -1,
+    })
   }
 
   // ── Sliding rail ──
@@ -244,6 +291,28 @@ export function rebuildGate(gateGroup, cfg) {
   })
 }
 
+export function updateGateAnimation(gateGroup, cfg, timeSeconds = 0, animationEnabled = false) {
+  if (!gateGroup || !cfg) return
+
+  const openAmount = animationEnabled ? (Math.sin(timeSeconds * 0.85) + 1) / 2 : 0
+  const easedOpenAmount = openAmount * openAmount * (3 - 2 * openAmount)
+
+  gateGroup.traverse((child) => {
+    if (!child.userData?.isAnimatedGatePanel) return
+
+    if (child.userData.animationType === 'sliding') {
+      child.position.x = child.userData.baseX + child.userData.slideDistance * easedOpenAmount
+      child.rotation.y = 0
+      return
+    }
+
+    if (child.userData.animationType === 'swing') {
+      child.position.x = child.userData.baseX
+      child.rotation.y = child.userData.swingDirection * Math.PI * 0.5 * easedOpenAmount
+    }
+  })
+}
+
 
 function buildNeighbourProperty(group, env) {
   const {
@@ -263,7 +332,7 @@ function buildNeighbourProperty(group, env) {
     leafMat,
     trunkMat,
   } = env
-  const xOffset = side * (lotWidth + 1.2)
+  const xOffset = getFixedLotOffset(side)
   const gateW = NEIGHBOUR_GATE_WIDTH
   const gateH = NEIGHBOUR_GATE_HEIGHT
   const drivewayWidth = Math.max(gateW + 1.1, 3.2)
@@ -306,12 +375,15 @@ function buildNeighbourProperty(group, env) {
   addBox(group, [sideWallLength + 0.12, 0.08, wallDepth + 0.08], [leftWallCenter, wallHeight + 0.04, 0.08], stoneCapMat)
   addBox(group, [sideWallLength + 0.12, 0.08, wallDepth + 0.08], [rightWallCenter, wallHeight + 0.04, 0.08], stoneCapMat)
 
-  const returnFenceDepth = Math.max(4, lotDepth * 0.55)
+  const returnFenceDepth = lotDepth + 0.6
+  const rearWallZ = -returnFenceDepth
   ;[-1, 1].forEach((fenceSide) => {
     const x = xOffset + fenceSide * (lotWidth / 2)
     addBox(group, [0.16, wallHeight * 0.9, returnFenceDepth], [x, wallHeight * 0.45, -returnFenceDepth / 2], stoneMat)
     addBox(group, [0.22, 0.07, returnFenceDepth + 0.08], [x, wallHeight * 0.9 + 0.035, -returnFenceDepth / 2], stoneCapMat)
   })
+  addBox(group, [lotWidth + 0.16, wallHeight * 0.9, wallDepth], [xOffset, wallHeight * 0.45, rearWallZ], stoneMat)
+  addBox(group, [lotWidth + 0.28, 0.07, wallDepth + 0.08], [xOffset, wallHeight * 0.9 + 0.035, rearWallZ], stoneCapMat)
 
   const pW = 0.12
   const pH = gateH + 0.3
@@ -408,7 +480,7 @@ function buildPropertyEnvironment(group, env) {
     lineMat,
   } = env
 
-  const drivewayWidth = Math.max(w + 1.1, 3.2)
+  const drivewayWidth = FIXED_DRIVEWAY_WIDTH
   const streetZ = 3.35
   const streetDepth = 5.6
   const sidewalkZ = 0.82
@@ -464,12 +536,15 @@ function buildPropertyEnvironment(group, env) {
   addBox(group, [sideWallLength + 0.12, 0.08, wallDepth + 0.08], [leftWallCenter, wallHeight + 0.04, 0.08], stoneCapMat)
   addBox(group, [sideWallLength + 0.12, 0.08, wallDepth + 0.08], [rightWallCenter, wallHeight + 0.04, 0.08], stoneCapMat)
 
-  const returnFenceDepth = Math.max(4, lotDepth * 0.55)
+  const returnFenceDepth = lotDepth + 0.6
+  const rearWallZ = -returnFenceDepth
   ;[-1, 1].forEach((side) => {
     const x = side * (lotWidth / 2)
     addBox(group, [0.16, wallHeight * 0.9, returnFenceDepth], [x, wallHeight * 0.45, -returnFenceDepth / 2], stoneMat)
     addBox(group, [0.22, 0.07, returnFenceDepth + 0.08], [x, wallHeight * 0.9 + 0.035, -returnFenceDepth / 2], stoneCapMat)
   })
+  addBox(group, [lotWidth + 0.16, wallHeight * 0.9, wallDepth], [0, wallHeight * 0.45, rearWallZ], stoneMat)
+  addBox(group, [lotWidth + 0.28, 0.07, wallDepth + 0.08], [0, wallHeight * 0.9 + 0.035, rearWallZ], stoneCapMat)
 
   addBox(group, [0.28, 0.42, 0.16], [-w / 2 - 0.86, 0.36, 1.15], new THREE.MeshStandardMaterial({
     color: 0x1f2933,
@@ -563,6 +638,23 @@ function buildWallMountedIntercom(group, x, wallHeight) {
       })
     })
   })
+}
+
+function buildAnimatedGatePanel(group, options) {
+  const panelGroup = new THREE.Group()
+  panelGroup.name = `${options.animationType} animated gate panel`
+  panelGroup.position.set(options.pivotX, 0, 0)
+  panelGroup.userData = {
+    isAnimatedGatePanel: true,
+    animationType: options.animationType,
+    baseX: options.pivotX,
+    swingDirection: options.swingDirection ?? 1,
+    slideDistance: options.slideDistance ?? 0,
+  }
+
+  buildPanel(panelGroup, options.panelCenterX, options.pw, options.h, options.mat, options.ft, options.fd, options.slatStyle)
+  group.add(panelGroup)
+  return panelGroup
 }
 
 // ── Panel builder ──
@@ -687,14 +779,16 @@ function buildPanel(group, cx, pw, h, mat, ft, fd, slatStyle) {
 
 // ── Side fence builder ──
 function buildSideFence(group, startX, dir, h, gateMat, pillarMat, lotWidth) {
-  const fLen = Math.max(2.2, lotWidth * 0.22)
+  const boundaryX = dir < 0 ? -lotWidth / 2 : lotWidth / 2
+  const fLen = Math.max(0.2, Math.abs(boundaryX - startX))
+  const fenceCenterX = (startX + boundaryX) / 2
   const fenceH = Math.max(0.9, h * 0.8)
   // End post
   const post = new THREE.Mesh(
     new THREE.BoxGeometry(0.06, fenceH, 0.06),
     pillarMat
   )
-  post.position.set(startX + dir * fLen, fenceH / 2, -0.03)
+  post.position.set(boundaryX, fenceH / 2, -0.03)
   post.castShadow = true
   group.add(post)
 
@@ -704,11 +798,11 @@ function buildSideFence(group, startX, dir, h, gateMat, pillarMat, lotWidth) {
   const cnt = Math.floor(fenceH / (sh + gap))
   for (let i = 0; i < cnt; i++) {
     const s = new THREE.Mesh(
-      new THREE.BoxGeometry(fLen - 0.05, sh, 0.015),
+      new THREE.BoxGeometry(Math.max(0.05, fLen - 0.05), sh, 0.015),
       gateMat
     )
     s.position.set(
-      startX + (dir * fLen) / 2,
+      fenceCenterX,
       0.1 + i * (sh + gap) + sh / 2,
       -0.03
     )

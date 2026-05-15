@@ -5,11 +5,6 @@ const CAR_LENGTH_METERS = 4.4
 const CAR_WIDTH_METERS = 1.8
 const CAR_HEIGHT_METERS = 1.4
 
-function getNeighborOffset(cfg, side) {
-  const lotWidth = Math.max(cfg.width + 7, 12)
-  return side * (lotWidth + 1.2)
-}
-
 export function loadCarModel(scene, cfg, callbacks = {}) {
   const variant = callbacks.variant ?? 'central-driveway'
   return loadGlbModel({
@@ -27,7 +22,7 @@ export function loadCarModel(scene, cfg, callbacks = {}) {
 export function updateCarModel(carGroup, cfg, variant = 'central-driveway') {
   if (!carGroup) return
 
-  carGroup.position.set(Math.min(cfg.width * 0.18, 0.65), 0.04, -2.25)
+  carGroup.position.set(0.65, 0.04, -2.25)
   carGroup.rotation.set(0, 0, 0)
 }
 
