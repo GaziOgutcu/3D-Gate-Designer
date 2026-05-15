@@ -4,7 +4,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 export function createScene(canvas) {
   const scene = new THREE.Scene()
   scene.background = new THREE.Color(0xbfd4e8)
-  scene.fog = new THREE.FogExp2(0xbfd4e8, 0.018)
+  scene.fog = new THREE.FogExp2(0xbfd4e8, 0.011)
 
   const camera = new THREE.PerspectiveCamera(
     40,
@@ -31,8 +31,8 @@ export function createScene(canvas) {
   dirLight.position.set(8, 12, 6)
   dirLight.castShadow = true
   dirLight.shadow.mapSize.set(2048, 2048)
-  dirLight.shadow.camera.left = -10
-  dirLight.shadow.camera.right = 10
+  dirLight.shadow.camera.left = -24
+  dirLight.shadow.camera.right = 24
   dirLight.shadow.camera.top = 10
   dirLight.shadow.camera.bottom = -10
   dirLight.shadow.bias = -0.0005
@@ -47,7 +47,7 @@ export function createScene(canvas) {
   scene.add(rimLight)
 
   // ── Ground plane ──
-  const groundGeo = new THREE.PlaneGeometry(60, 60)
+  const groundGeo = new THREE.PlaneGeometry(90, 70)
   const groundMat = new THREE.MeshStandardMaterial({
     color: 0x203625,
     roughness: 0.98,
@@ -68,7 +68,7 @@ export function createScene(canvas) {
   controls.dampingFactor = 0.08
   controls.autoRotate = false
   controls.minDistance = 3
-  controls.maxDistance = 14
+  controls.maxDistance = 26
   controls.maxPolarAngle = Math.PI * 0.48
   controls.target.set(0, 1, 0)
   controls.update()
