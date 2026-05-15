@@ -1,3 +1,4 @@
+import { FIXED_LOT_WIDTH } from './lotLayout'
 import { loadGlbModel, normalizeImportedModelByBoundingBox } from './modelLoader'
 
 const TREE_MODEL_URL = '/models/tree.glb'
@@ -36,8 +37,8 @@ export function updateTreeModels(treeGroups, cfg) {
 function updateTreeModel(treeGroup, cfg) {
   if (!treeGroup) return
   const layout = cfg.layout ?? TREE_LAYOUT[cfg.index ?? 0]
-  const lotWidth = Math.max(cfg.width + 7, 12)
-  const x = layout.side * Math.max(cfg.width / 2 + layout.offset, lotWidth * 0.36)
+  const lotWidth = FIXED_LOT_WIDTH
+  const x = layout.side * Math.max(2 + layout.offset, lotWidth * 0.36)
   treeGroup.position.set(x, 0.02, layout.z)
   treeGroup.rotation.set(0, layout.side > 0 ? -0.25 : 0.25, 0)
 }
