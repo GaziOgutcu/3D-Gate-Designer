@@ -136,11 +136,57 @@ export function rebuildGate(gateGroup, cfg) {
   const ft = 0.04 // frame thickness
   const fd = 0.03 // frame depth
 
-  if (cfg.gateType === 'swing-double') {
-    buildPanel(gateGroup, -w / 4, w / 2, h, gateMat, ft, fd, cfg.slatStyle)
-    buildPanel(gateGroup, w / 4, w / 2, h, gateMat, ft, fd, cfg.slatStyle)
+  if (cfg.gateType === 'sliding') {
+    buildAnimatedGatePanel(gateGroup, {
+      pivotX: 0,
+      panelCenterX: 0,
+      pw: w,
+      h,
+      mat: gateMat,
+      ft,
+      fd,
+      slatStyle: cfg.slatStyle,
+      animationType: 'sliding',
+      slideDistance: w * 0.68,
+    })
+  } else if (cfg.gateType === 'swing-double') {
+    buildAnimatedGatePanel(gateGroup, {
+      pivotX: -w / 2,
+      panelCenterX: w / 4,
+      pw: w / 2,
+      h,
+      mat: gateMat,
+      ft,
+      fd,
+      slatStyle: cfg.slatStyle,
+      animationType: 'swing',
+      swingDirection: -1,
+    })
+    buildAnimatedGatePanel(gateGroup, {
+      pivotX: w / 2,
+      panelCenterX: -w / 4,
+      pw: w / 2,
+      h,
+      mat: gateMat,
+      ft,
+      fd,
+      slatStyle: cfg.slatStyle,
+      animationType: 'swing',
+      swingDirection: 1,
+    })
   } else {
-    buildPanel(gateGroup, 0, w, h, gateMat, ft, fd, cfg.slatStyle)
+    buildAnimatedGatePanel(gateGroup, {
+      pivotX: -w / 2,
+      panelCenterX: w / 2,
+      pw: w,
+      h,
+      mat: gateMat,
+      ft,
+      fd,
+      slatStyle: cfg.slatStyle,
+      animationType: 'swing',
+      swingDirection: -1,
+    })
   }
 
   // ── Sliding rail ──
@@ -241,6 +287,28 @@ export function rebuildGate(gateGroup, cfg) {
     mulchMat,
     leafMat,
     trunkMat,
+  })
+}
+
+export function updateGateAnimation(gateGroup, cfg, timeSeconds = 0) {
+  if (!gateGroup || !cfg) return
+
+  const openAmount = (Math.sin(timeSeconds * 0.85) + 1) / 2
+  const easedOpenAmount = openAmount * openAmount * (3 - 2 * openAmount)
+
+  gateGroup.traverse((child) => {
+    if (!child.userData?.isAnimatedGatePanel) return
+
+    if (child.userData.animationType === 'sliding') {
+      child.position.x = child.userData.baseX + child.userData.slideDistance * easedOpenAmount
+      child.rotation.y = 0
+      return
+    }
+
+    if (child.userData.animationType === 'swing') {
+      child.position.x = child.userData.baseX
+      child.rotation.y = child.userData.swingDirection * Math.PI * 0.5 * easedOpenAmount
+    }
   })
 }
 
@@ -563,6 +631,23 @@ function buildWallMountedIntercom(group, x, wallHeight) {
       })
     })
   })
+}
+
+function buildAnimatedGatePanel(group, options) {
+  const panelGroup = new THREE.Group()
+  panelGroup.name = `${options.animationType} animated gate panel`
+  panelGroup.position.set(options.pivotX, 0, 0)
+  panelGroup.userData = {
+    isAnimatedGatePanel: true,
+    animationType: options.animationType,
+    baseX: options.pivotX,
+    swingDirection: options.swingDirection ?? 1,
+    slideDistance: options.slideDistance ?? 0,
+  }
+
+  buildPanel(panelGroup, options.panelCenterX, options.pw, options.h, options.mat, options.ft, options.fd, options.slatStyle)
+  group.add(panelGroup)
+  return panelGroup
 }
 
 // ── Panel builder ──
