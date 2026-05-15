@@ -12,7 +12,10 @@ export function loadRubbishModel(scene, cfg, callbacks = {}) {
     name: callbacks.name ?? 'Wheelie bin group',
     updateTransform: updateRubbishModel,
     normalize: normalizeRubbishModel,
-    onReady: callbacks.onLoaded,
+    onReady: (group) => {
+      buildBinRow(group)
+      callbacks.onLoaded?.(group)
+    },
     onError: callbacks.onError,
   })
 }
