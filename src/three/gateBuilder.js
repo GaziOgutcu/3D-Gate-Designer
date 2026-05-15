@@ -136,11 +136,57 @@ export function rebuildGate(gateGroup, cfg) {
   const ft = 0.04 // frame thickness
   const fd = 0.03 // frame depth
 
-  if (cfg.gateType === 'swing-double') {
-    buildPanel(gateGroup, -w / 4, w / 2, h, gateMat, ft, fd, cfg.slatStyle)
-    buildPanel(gateGroup, w / 4, w / 2, h, gateMat, ft, fd, cfg.slatStyle)
+  if (cfg.gateType === 'sliding') {
+    buildAnimatedGatePanel(gateGroup, {
+      pivotX: 0,
+      panelCenterX: 0,
+      pw: w,
+      h,
+      mat: gateMat,
+      ft,
+      fd,
+      slatStyle: cfg.slatStyle,
+      animationType: 'sliding',
+      slideDistance: w * 0.68,
+    })
+  } else if (cfg.gateType === 'swing-double') {
+    buildAnimatedGatePanel(gateGroup, {
+      pivotX: -w / 2,
+      panelCenterX: w / 4,
+      pw: w / 2,
+      h,
+      mat: gateMat,
+      ft,
+      fd,
+      slatStyle: cfg.slatStyle,
+      animationType: 'swing',
+      swingDirection: -1,
+    })
+    buildAnimatedGatePanel(gateGroup, {
+      pivotX: w / 2,
+      panelCenterX: -w / 4,
+      pw: w / 2,
+      h,
+      mat: gateMat,
+      ft,
+      fd,
+      slatStyle: cfg.slatStyle,
+      animationType: 'swing',
+      swingDirection: 1,
+    })
   } else {
-    buildPanel(gateGroup, 0, w, h, gateMat, ft, fd, cfg.slatStyle)
+    buildAnimatedGatePanel(gateGroup, {
+      pivotX: -w / 2,
+      panelCenterX: w / 2,
+      pw: w,
+      h,
+      mat: gateMat,
+      ft,
+      fd,
+      slatStyle: cfg.slatStyle,
+      animationType: 'swing',
+      swingDirection: -1,
+    })
   }
 
   // ── Sliding rail ──
@@ -244,6 +290,28 @@ export function rebuildGate(gateGroup, cfg) {
   })
 }
 
+export function updateGateAnimation(gateGroup, cfg, timeSeconds = 0, animationEnabled = false) {
+  if (!gateGroup || !cfg) return
+
+  const openAmount = animationEnabled ? (Math.sin(timeSeconds * 0.85) + 1) / 2 : 0
+  const easedOpenAmount = openAmount * openAmount * (3 - 2 * openAmount)
+
+  gateGroup.traverse((child) => {
+    if (!child.userData?.isAnimatedGatePanel) return
+
+    if (child.userData.animationType === 'sliding') {
+      child.position.x = child.userData.baseX + child.userData.slideDistance * easedOpenAmount
+      child.rotation.y = 0
+      return
+    }
+
+    if (child.userData.animationType === 'swing') {
+      child.position.x = child.userData.baseX
+      child.rotation.y = child.userData.swingDirection * Math.PI * 0.5 * easedOpenAmount
+    }
+  })
+}
+
 
 function buildNeighbourProperty(group, env) {
   const {
@@ -306,12 +374,15 @@ function buildNeighbourProperty(group, env) {
   addBox(group, [sideWallLength + 0.12, 0.08, wallDepth + 0.08], [leftWallCenter, wallHeight + 0.04, 0.08], stoneCapMat)
   addBox(group, [sideWallLength + 0.12, 0.08, wallDepth + 0.08], [rightWallCenter, wallHeight + 0.04, 0.08], stoneCapMat)
 
-  const returnFenceDepth = Math.max(4, lotDepth * 0.55)
+  const returnFenceDepth = lotDepth + 0.6
+  const rearWallZ = -returnFenceDepth
   ;[-1, 1].forEach((fenceSide) => {
     const x = xOffset + fenceSide * (lotWidth / 2)
     addBox(group, [0.16, wallHeight * 0.9, returnFenceDepth], [x, wallHeight * 0.45, -returnFenceDepth / 2], stoneMat)
     addBox(group, [0.22, 0.07, returnFenceDepth + 0.08], [x, wallHeight * 0.9 + 0.035, -returnFenceDepth / 2], stoneCapMat)
   })
+  addBox(group, [lotWidth + 0.16, wallHeight * 0.9, wallDepth], [xOffset, wallHeight * 0.45, rearWallZ], stoneMat)
+  addBox(group, [lotWidth + 0.28, 0.07, wallDepth + 0.08], [xOffset, wallHeight * 0.9 + 0.035, rearWallZ], stoneCapMat)
 
   const pW = 0.12
   const pH = gateH + 0.3
@@ -464,12 +535,15 @@ function buildPropertyEnvironment(group, env) {
   addBox(group, [sideWallLength + 0.12, 0.08, wallDepth + 0.08], [leftWallCenter, wallHeight + 0.04, 0.08], stoneCapMat)
   addBox(group, [sideWallLength + 0.12, 0.08, wallDepth + 0.08], [rightWallCenter, wallHeight + 0.04, 0.08], stoneCapMat)
 
-  const returnFenceDepth = Math.max(4, lotDepth * 0.55)
+  const returnFenceDepth = lotDepth + 0.6
+  const rearWallZ = -returnFenceDepth
   ;[-1, 1].forEach((side) => {
     const x = side * (lotWidth / 2)
     addBox(group, [0.16, wallHeight * 0.9, returnFenceDepth], [x, wallHeight * 0.45, -returnFenceDepth / 2], stoneMat)
     addBox(group, [0.22, 0.07, returnFenceDepth + 0.08], [x, wallHeight * 0.9 + 0.035, -returnFenceDepth / 2], stoneCapMat)
   })
+  addBox(group, [lotWidth + 0.16, wallHeight * 0.9, wallDepth], [0, wallHeight * 0.45, rearWallZ], stoneMat)
+  addBox(group, [lotWidth + 0.28, 0.07, wallDepth + 0.08], [0, wallHeight * 0.9 + 0.035, rearWallZ], stoneCapMat)
 
   addBox(group, [0.28, 0.42, 0.16], [-w / 2 - 0.86, 0.36, 1.15], new THREE.MeshStandardMaterial({
     color: 0x1f2933,
@@ -563,6 +637,23 @@ function buildWallMountedIntercom(group, x, wallHeight) {
       })
     })
   })
+}
+
+function buildAnimatedGatePanel(group, options) {
+  const panelGroup = new THREE.Group()
+  panelGroup.name = `${options.animationType} animated gate panel`
+  panelGroup.position.set(options.pivotX, 0, 0)
+  panelGroup.userData = {
+    isAnimatedGatePanel: true,
+    animationType: options.animationType,
+    baseX: options.pivotX,
+    swingDirection: options.swingDirection ?? 1,
+    slideDistance: options.slideDistance ?? 0,
+  }
+
+  buildPanel(panelGroup, options.panelCenterX, options.pw, options.h, options.mat, options.ft, options.fd, options.slatStyle)
+  group.add(panelGroup)
+  return panelGroup
 }
 
 // ── Panel builder ──
