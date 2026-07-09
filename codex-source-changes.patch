@@ -1,0 +1,950 @@
+diff --git a/src/App.jsx b/src/App.jsx
+index fec1f26..f3a8bcf 100644
+--- a/src/App.jsx
++++ b/src/App.jsx
+@@ -9,6 +9,10 @@ export default function App() {
+   const [cfg, setCfg] = useState(DEFAULT_CONFIG)
+ 
+   const onUpdate = (key, val) => {
++    if (typeof key === 'object') {
++      setCfg((prev) => ({ ...prev, ...key }))
++      return
++    }
+     setCfg((prev) => ({ ...prev, [key]: val }))
+   }
+ 
+diff --git a/src/components/ConfigPanel.jsx b/src/components/ConfigPanel.jsx
+index f176aeb..b33589c 100644
+--- a/src/components/ConfigPanel.jsx
++++ b/src/components/ConfigPanel.jsx
+@@ -1,324 +1,172 @@
+-import React from 'react'
+-import Toggle from './Toggle'
+-import { GATE_TYPES, MATERIALS, SLAT_STYLES, COLORS } from '../data/config'
++import React, { useState } from 'react'
++import {
++  COLORS,
++  DESIGN_CATEGORIES,
++  GATE_TYPES,
++  POWER_SUPPLIES,
++  TIMELINES,
++  getAutomationOptions,
++  getDefaultAutomation,
++  getDesignCategory,
++} from '../data/config'
+ 
+-const sectionLabel = {
+-  fontSize: '0.65rem',
+-  textTransform: 'uppercase',
+-  letterSpacing: '2.5px',
+-  color: '#b8860b',
+-  marginBottom: 14,
+-  fontWeight: 700,
+-}
+-
+-const sectionTitle = {
+-  fontFamily: "'Playfair Display', Georgia, serif",
+-  fontSize: '1.05rem',
++const sectionLabel = { fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '2.5px', color: '#b8860b', marginBottom: 14, fontWeight: 700 }
++const sectionTitle = { fontFamily: "'Playfair Display', Georgia, serif", fontSize: '1.05rem', fontWeight: 600, marginBottom: 4 }
++const sectionDesc = { fontSize: '0.78rem', color: '#9a9890', lineHeight: 1.5, marginBottom: 14 }
++const panelSection = { padding: '20px 22px', borderBottom: '1px solid #2a332e' }
++const optionButton = (active) => ({
++  background: active ? '#1c2621' : '#161e1a',
++  border: `2px solid ${active ? '#b8860b' : '#2a332e'}`,
++  borderRadius: 10,
++  padding: '10px 12px',
++  cursor: 'pointer',
++  color: active ? '#d4a017' : '#e8e6e1',
++  fontFamily: "'DM Sans', sans-serif",
++  fontSize: '0.76rem',
+   fontWeight: 600,
+-  marginBottom: 4,
++  textAlign: 'left',
++  transition: 'all 0.2s',
++})
++const inputStyle = {
++  width: '100%',
++  padding: '9px 12px',
++  background: '#161e1a',
++  border: '1.5px solid #2a332e',
++  borderRadius: 8,
++  color: '#e8e6e1',
++  fontSize: '0.83rem',
++  fontFamily: "'DM Sans', sans-serif",
++  outline: 'none',
++  boxSizing: 'border-box',
+ }
+ 
+-const sectionDesc = {
+-  fontSize: '0.78rem',
+-  color: '#9a9890',
+-  lineHeight: 1.5,
+-  marginBottom: 14,
+-}
++export default function ConfigPanel({ cfg, onUpdate }) {
++  const [previewDesign, setPreviewDesign] = useState(null)
++  const automationOptions = getAutomationOptions(cfg.gateType)
+ 
+-const panelSection = {
+-  padding: '20px 22px',
+-  borderBottom: '1px solid #2a332e',
+-}
++  const updateDesign = (designId) => {
++    const design = getDesignCategory(designId)
++    onUpdate({ designCategory: design.id, material: design.material, slatStyle: design.slatStyle })
++  }
++
++  const updateGateType = (gateType) => {
++    onUpdate({ gateType, automation: getDefaultAutomation(gateType), motor: true })
++  }
++
++  const updatePowerSupply = (powerSupply) => {
++    onUpdate({ powerSupply, solar: powerSupply === 'solar-system' })
++  }
+ 
+-export default function ConfigPanel({ cfg, onUpdate }) {
+   return (
+-    <div
+-      style={{
+-        width: 360,
+-        minWidth: 360,
+-        background: '#111916',
+-        borderRight: '1px solid #2a332e',
+-        overflowY: 'auto',
+-        flexShrink: 0,
+-      }}
+-    >
+-      {/* Gate Type */}
++    <div style={{ width: 360, minWidth: 360, background: '#111916', borderRight: '1px solid #2a332e', overflowY: 'auto', flexShrink: 0 }}>
+       <div style={panelSection}>
+-        <div style={sectionLabel}>01 — Gate Type</div>
+-        <div style={sectionTitle}>Choose Your Style</div>
+-        <div style={sectionDesc}>
+-          Select the gate that suits your property.
+-        </div>
+-        <div
+-          style={{
+-            display: 'grid',
+-            gridTemplateColumns: '1fr 1fr',
+-            gap: 8,
+-          }}
+-        >
+-          {GATE_TYPES.map((gt) => (
+-            <div
+-              key={gt.id}
+-              onClick={() => {
+-                onUpdate('gateType', gt.id)
+-                if (gt.id === 'pedestrian') onUpdate('width', 1.2)
+-              }}
++        <div style={sectionLabel}>01 — Gate Design</div>
++        <div style={sectionTitle}>Choose Your Design</div>
++        <div style={sectionDesc}>Only the uploaded reference designs are shown. Hover a design to preview the customer reference photo.</div>
++        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, position: 'relative' }}>
++          {DESIGN_CATEGORIES.map((design) => (
++            <button
++              key={design.id}
++              onClick={() => updateDesign(design.id)}
++              onMouseEnter={() => setPreviewDesign(design)}
++              onFocus={() => setPreviewDesign(design)}
++              onMouseLeave={() => setPreviewDesign(null)}
++              onBlur={() => setPreviewDesign(null)}
+               style={{
+-                background:
+-                  cfg.gateType === gt.id ? '#1c2621' : '#161e1a',
+-                border: `2px solid ${cfg.gateType === gt.id ? '#b8860b' : '#2a332e'}`,
+-                borderRadius: 10,
+-                padding: '12px 10px',
+-                cursor: 'pointer',
+-                textAlign: 'center',
+-                transition: 'all 0.2s',
++                ...optionButton(cfg.designCategory === design.id),
++                padding: 0,
++                overflow: 'hidden',
++                position: 'relative',
++                minHeight: 104,
+               }}
+             >
+-              <div style={{ fontSize: '1.6rem', marginBottom: 4 }}>
+-                {gt.icon}
+-              </div>
+-              <div style={{ fontSize: '0.76rem', fontWeight: 600 }}>
+-                {gt.label}
+-              </div>
+-              <div
+-                style={{ fontSize: '0.63rem', color: '#6b6960', marginTop: 2 }}
+-              >
+-                {gt.sub}
+-              </div>
+-            </div>
++              <img
++                src={design.image}
++                alt={`${design.label} reference`}
++                style={{ width: '100%', height: 72, objectFit: 'cover', display: 'block' }}
++              />
++              <span style={{ display: 'block', padding: '8px 9px', lineHeight: 1.2 }}>{design.label}</span>
++            </button>
+           ))}
+-        </div>
+-      </div>
+-
+-      {/* Material */}
+-      <div style={panelSection}>
+-        <div style={sectionLabel}>02 — Material</div>
+-        <div style={sectionTitle}>Select Material</div>
+-        <div
+-          style={{
+-            display: 'grid',
+-            gridTemplateColumns: '1fr 1fr 1fr',
+-            gap: 8,
+-            marginTop: 12,
+-          }}
+-        >
+-          {MATERIALS.map((m) => (
++          {previewDesign && (
+             <div
+-              key={m.id}
+-              onClick={() => onUpdate('material', m.id)}
+               style={{
+-                background:
+-                  cfg.material === m.id ? '#1c2621' : '#161e1a',
+-                border: `2px solid ${cfg.material === m.id ? '#b8860b' : '#2a332e'}`,
+-                borderRadius: 10,
+-                padding: '12px 8px',
+-                cursor: 'pointer',
+-                textAlign: 'center',
+-                transition: 'all 0.2s',
++                position: 'fixed',
++                left: 374,
++                top: 96,
++                width: 360,
++                padding: 10,
++                borderRadius: 14,
++                background: '#0c1210',
++                border: '1px solid rgba(212,160,23,0.45)',
++                boxShadow: '0 22px 55px rgba(0,0,0,0.45)',
++                zIndex: 30,
++                pointerEvents: 'none',
+               }}
+             >
+-              <div style={{ fontSize: '1.3rem', marginBottom: 4 }}>
+-                {m.icon}
+-              </div>
+-              <div style={{ fontSize: '0.74rem', fontWeight: 600 }}>
+-                {m.label}
+-              </div>
+-              <div
+-                style={{ fontSize: '0.62rem', color: '#6b6960', marginTop: 2 }}
+-              >
+-                {m.sub}
+-              </div>
++              <img
++                src={previewDesign.image}
++                alt={`${previewDesign.label} enlarged reference`}
++                style={{ width: '100%', maxHeight: 260, objectFit: 'cover', borderRadius: 10, display: 'block' }}
++              />
++              <div style={{ marginTop: 8, color: '#d4a017', fontSize: '0.82rem', fontWeight: 700 }}>{previewDesign.label}</div>
+             </div>
+-          ))}
++          )}
+         </div>
+       </div>
+ 
+-      {/* Slat Style */}
+       <div style={panelSection}>
+-        <div style={sectionLabel}>03 — Infill Design</div>
+-        <div style={sectionTitle}>Panel Style</div>
+-        <div
+-          style={{
+-            display: 'flex',
+-            gap: 6,
+-            flexWrap: 'wrap',
+-            marginTop: 12,
+-          }}
+-        >
+-          {SLAT_STYLES.map((s) => (
+-            <button
+-              key={s.id}
+-              onClick={() => onUpdate('slatStyle', s.id)}
+-              style={{
+-                padding: '7px 14px',
+-                borderRadius: 8,
+-                cursor: 'pointer',
+-                fontSize: '0.73rem',
+-                fontWeight: 500,
+-                fontFamily: "'DM Sans', sans-serif",
+-                background:
+-                  cfg.slatStyle === s.id
+-                    ? 'rgba(184,134,11,0.12)'
+-                    : '#161e1a',
+-                border: `2px solid ${cfg.slatStyle === s.id ? '#b8860b' : '#2a332e'}`,
+-                color:
+-                  cfg.slatStyle === s.id ? '#d4a017' : '#e8e6e1',
+-                transition: 'all 0.2s',
+-              }}
+-            >
+-              {s.label}
++        <div style={sectionLabel}>02 — Gate Type and Size</div>
++        <div style={sectionTitle}>Gate Type</div>
++        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 12 }}>
++          {GATE_TYPES.map((gt) => (
++            <button key={gt.id} onClick={() => updateGateType(gt.id)} style={{ ...optionButton(cfg.gateType === gt.id), textAlign: 'center' }}>
++              <div style={{ fontSize: '1.5rem', marginBottom: 4 }}>{gt.icon}</div>
++              {gt.label}
+             </button>
+           ))}
+         </div>
++        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 16 }}>
++          <label style={{ fontSize: '0.75rem', color: '#9a9890' }}>
++            Width in mm
++            <input type="number" min="1500" max="8000" step="100" value={Math.round(cfg.width * 1000)} onChange={(e) => onUpdate('width', Number(e.target.value) / 1000)} style={{ ...inputStyle, marginTop: 6 }} />
++          </label>
++          <label style={{ fontSize: '0.75rem', color: '#9a9890' }}>
++            Height in mm
++            <input type="number" min="900" max="2400" step="100" value={Math.round(cfg.height * 1000)} onChange={(e) => onUpdate('height', Number(e.target.value) / 1000)} style={{ ...inputStyle, marginTop: 6 }} />
++          </label>
++        </div>
+       </div>
+ 
+-      {/* Colour */}
+       <div style={panelSection}>
+-        <div style={sectionLabel}>04 — Colour</div>
+-        <div style={sectionTitle}>Gate Colour</div>
+-        <div
+-          style={{
+-            display: 'flex',
+-            gap: 10,
+-            flexWrap: 'wrap',
+-            marginTop: 12,
+-          }}
+-        >
+-          {COLORS.map((c) => (
+-            <div
+-              key={c.hex}
+-              onClick={() => {
+-                onUpdate('color', c.hex)
+-                onUpdate('colorName', c.name)
+-              }}
+-              title={c.name}
+-              style={{
+-                width: 36,
+-                height: 36,
+-                borderRadius: '50%',
+-                background: c.hex,
+-                cursor: 'pointer',
+-                border: `3px solid ${cfg.color === c.hex ? '#d4a017' : '#2a332e'}`,
+-                boxShadow:
+-                  cfg.color === c.hex
+-                    ? '0 0 0 3px rgba(184,134,11,0.25)'
+-                    : 'none',
+-                transform:
+-                  cfg.color === c.hex ? 'scale(1.15)' : 'scale(1)',
+-                transition: 'all 0.2s',
+-              }}
+-            />
+-          ))}
++        <div style={sectionLabel}>03 — Power Supply and Automation</div>
++        <div style={sectionTitle}>Power Supply</div>
++        <div style={{ display: 'grid', gap: 8, marginTop: 12 }}>
++          {POWER_SUPPLIES.map((power) => <button key={power.id} onClick={() => updatePowerSupply(power.id)} style={optionButton(cfg.powerSupply === power.id)}>{power.label}</button>)}
+         </div>
+-        <div
+-          style={{ fontSize: '0.7rem', color: '#9a9890', marginTop: 8 }}
+-        >
+-          Selected: {cfg.colorName}
++        <div style={{ ...sectionTitle, marginTop: 18 }}>Automation</div>
++        <div style={{ display: 'grid', gap: 8, marginTop: 12 }}>
++          {automationOptions.map((automation) => <button key={automation.id} onClick={() => onUpdate({ automation: automation.id, motor: true })} style={optionButton(cfg.automation === automation.id)}>{automation.label}</button>)}
+         </div>
+       </div>
+ 
+-      {/* Dimensions */}
+       <div style={panelSection}>
+-        <div style={sectionLabel}>05 — Dimensions</div>
+-        <div style={sectionTitle}>Gate Size</div>
+-
+-        <div style={{ marginTop: 14 }}>
+-          <div
+-            style={{
+-              display: 'flex',
+-              justifyContent: 'space-between',
+-              marginBottom: 6,
+-            }}
+-          >
+-            <span style={{ fontSize: '0.8rem' }}>Width</span>
+-            <span
+-              style={{
+-                fontSize: '0.82rem',
+-                fontWeight: 700,
+-                color: '#d4a017',
+-                background: 'rgba(184,134,11,0.12)',
+-                padding: '2px 10px',
+-                borderRadius: 12,
+-              }}
+-            >
+-              {cfg.width.toFixed(1)}m
+-            </span>
+-          </div>
+-          <input
+-            type="range"
+-            min="1.5"
+-            max="8"
+-            step="0.1"
+-            value={cfg.width}
+-            onChange={(e) => onUpdate('width', parseFloat(e.target.value))}
+-          />
+-        </div>
+-
+-        <div style={{ marginTop: 16 }}>
+-          <div
+-            style={{
+-              display: 'flex',
+-              justifyContent: 'space-between',
+-              marginBottom: 6,
+-            }}
+-          >
+-            <span style={{ fontSize: '0.8rem' }}>Height</span>
+-            <span
+-              style={{
+-                fontSize: '0.82rem',
+-                fontWeight: 700,
+-                color: '#d4a017',
+-                background: 'rgba(184,134,11,0.12)',
+-                padding: '2px 10px',
+-                borderRadius: 12,
+-              }}
+-            >
+-              {cfg.height.toFixed(1)}m
+-            </span>
+-          </div>
+-          <input
+-            type="range"
+-            min="0.9"
+-            max="2.4"
+-            step="0.1"
+-            value={cfg.height}
+-            onChange={(e) =>
+-              onUpdate('height', parseFloat(e.target.value))
+-            }
+-          />
++        <div style={sectionLabel}>04 — Timeline / Estimate</div>
++        <div style={sectionTitle}>Project Timeline</div>
++        <div style={{ display: 'grid', gap: 8, marginTop: 12 }}>
++          {TIMELINES.map((timeline) => <button key={timeline.id} onClick={() => onUpdate('timeline', timeline.id)} style={optionButton(cfg.timeline === timeline.id)}>{timeline.label}</button>)}
+         </div>
+       </div>
+ 
+-      {/* Extras */}
+       <div style={{ ...panelSection, borderBottom: 'none' }}>
+-        <div style={sectionLabel}>06 — Extras & Automation</div>
+-        <div style={sectionTitle}>Add-ons</div>
+-        <div style={{ marginTop: 10 }}>
+-          <Toggle
+-            checked={cfg.motor}
+-            onChange={(v) => onUpdate('motor', v)}
+-            label="Gate Motor"
+-            sub="Electric automation system"
+-          />
+-          <Toggle
+-            checked={cfg.solar}
+-            onChange={(v) => onUpdate('solar', v)}
+-            label="Solar Power"
+-            sub="Off-grid solar kit"
+-          />
+-          <Toggle
+-            checked={cfg.intercom}
+-            onChange={(v) => onUpdate('intercom', v)}
+-            label="Intercom / Keypad"
+-            sub="Access control entry"
+-          />
+-          <Toggle
+-            checked={cfg.sensors}
+-            onChange={(v) => onUpdate('sensors', v)}
+-            label="Safety Sensors"
+-            sub="Photo beam sensors"
+-          />
++        <div style={sectionLabel}>Colour</div>
++        <div style={sectionTitle}>Gate Colour</div>
++        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 12 }}>
++          {COLORS.map((c) => (
++            <div key={c.hex} onClick={() => onUpdate({ color: c.hex, colorName: c.name })} title={c.name} style={{ width: 36, height: 36, borderRadius: '50%', background: c.hex, cursor: 'pointer', border: `3px solid ${cfg.color === c.hex ? '#d4a017' : '#2a332e'}`, boxShadow: cfg.color === c.hex ? '0 0 0 3px rgba(184,134,11,0.25)' : 'none', transform: cfg.color === c.hex ? 'scale(1.15)' : 'scale(1)', transition: 'all 0.2s' }} />
++          ))}
+         </div>
++        <div style={{ fontSize: '0.7rem', color: '#9a9890', marginTop: 8 }}>Selected: {cfg.colorName}</div>
+       </div>
+     </div>
+   )
+diff --git a/src/components/Header.jsx b/src/components/Header.jsx
+index 92d4937..ab51fbe 100644
+--- a/src/components/Header.jsx
++++ b/src/components/Header.jsx
+@@ -7,54 +7,26 @@ export default function Header() {
+         display: 'flex',
+         alignItems: 'center',
+         justifyContent: 'space-between',
+-        padding: '12px 24px',
++        gap: 18,
++        padding: '8px 24px',
+         background: 'rgba(10,15,13,0.97)',
+         borderBottom: '1px solid #2a332e',
+         flexShrink: 0,
+         zIndex: 10,
+       }}
+     >
+-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+-        <div
++      <a href="/" aria-label="Custom Auto Gates home" style={{ display: 'inline-flex', alignItems: 'center', minWidth: 0 }}>
++        <img
++          src="/logo.png"
++          alt="Custom Auto Gates"
+           style={{
+-            width: 40,
+-            height: 40,
+-            background: 'linear-gradient(135deg, #b8860b, #d4a017)',
+-            borderRadius: 8,
+-            display: 'flex',
+-            alignItems: 'center',
+-            justifyContent: 'center',
+-            fontFamily: "'Playfair Display', Georgia, serif",
+-            fontWeight: 700,
+-            fontSize: 17,
+-            color: '#0a0f0d',
++            display: 'block',
++            width: 'clamp(210px, 28vw, 320px)',
++            maxHeight: 72,
++            objectFit: 'contain',
+           }}
+-        >
+-          CA
+-        </div>
+-        <div>
+-          <div
+-            style={{
+-              fontFamily: "'Playfair Display', Georgia, serif",
+-              fontSize: '1.1rem',
+-              fontWeight: 600,
+-              lineHeight: 1.2,
+-            }}
+-          >
+-            Custom Auto <span style={{ color: '#b8860b' }}>Gates</span>
+-          </div>
+-          <div
+-            style={{
+-              fontSize: '0.55rem',
+-              letterSpacing: 2,
+-              color: '#6b6960',
+-              textTransform: 'uppercase',
+-            }}
+-          >
+-            3D Gate Designer
+-          </div>
+-        </div>
+-      </div>
++        />
++      </a>
+ 
+       <div
+         style={{
+@@ -63,6 +35,7 @@ export default function Header() {
+           gap: 16,
+           fontSize: '0.78rem',
+           color: '#9a9890',
++          whiteSpace: 'nowrap',
+         }}
+       >
+         <span style={{ opacity: 0.6 }}>Brisbane · Logan · Ipswich</span>
+diff --git a/src/components/QuotePanel.jsx b/src/components/QuotePanel.jsx
+index 828101f..21060be 100644
+--- a/src/components/QuotePanel.jsx
++++ b/src/components/QuotePanel.jsx
+@@ -1,5 +1,12 @@
+ import React, { useState } from 'react'
+-import { GATE_TYPES, MATERIALS, SLAT_STYLES } from '../data/config'
++import {
++  AUTOMATION_OPTIONS,
++  DESIGN_CATEGORIES,
++  GATE_TYPES,
++  POWER_SUPPLIES,
++  TIMELINES,
++  calcQuoteTotals,
++} from '../data/config'
+ 
+ const inputStyle = {
+   width: '100%',
+@@ -45,15 +52,16 @@ export default function QuotePanel({ cfg, priceStr }) {
+     }, 1500)
+   }
+ 
++  const totals = calcQuoteTotals(cfg)
++  const formatCurrency = (value) => '$' + value.toLocaleString()
+   const summaryRows = [
++    ['Gate Design', DESIGN_CATEGORIES.find((design) => design.id === cfg.designCategory)?.label],
+     ['Gate Type', GATE_TYPES.find((g) => g.id === cfg.gateType)?.label],
+-    ['Material', MATERIALS.find((m) => m.id === cfg.material)?.label],
+-    ['Infill', SLAT_STYLES.find((s) => s.id === cfg.slatStyle)?.label],
++    ['Size', `${Math.round(cfg.width * 1000)}mm × ${Math.round(cfg.height * 1000)}mm`],
++    ['Power Supply', POWER_SUPPLIES.find((power) => power.id === cfg.powerSupply)?.label],
++    ['Automation', AUTOMATION_OPTIONS.find((automation) => automation.id === cfg.automation)?.label],
++    ['Timeline', TIMELINES.find((timeline) => timeline.id === cfg.timeline)?.label],
+     ['Colour', cfg.colorName],
+-    ['Size', `${cfg.width.toFixed(1)}m × ${cfg.height.toFixed(1)}m`],
+-    ['Motor', cfg.motor ? 'Yes' : 'No'],
+-    ['Solar', cfg.solar ? 'Yes' : 'No'],
+-    ['Intercom', cfg.intercom ? 'Yes' : 'No'],
+   ]
+ 
+   const fields = [
+@@ -124,7 +132,17 @@ export default function QuotePanel({ cfg, priceStr }) {
+             marginTop: 8,
+           }}
+         >
+-          <span style={{ fontWeight: 600 }}>Estimate</span>
++          <span style={{ fontWeight: 600 }}>Tax</span>
++          <span style={{ fontWeight: 700 }}>{formatCurrency(totals.tax)}</span>
++        </div>
++        <div
++          style={{
++            display: 'flex',
++            justifyContent: 'space-between',
++            paddingTop: 8,
++          }}
++        >
++          <span style={{ fontWeight: 600 }}>Total</span>
+           <span
+             style={{
+               fontFamily: "'Playfair Display', Georgia, serif",
+diff --git a/src/data/config.js b/src/data/config.js
+index a0cbfa4..9d19a09 100644
+--- a/src/data/config.js
++++ b/src/data/config.js
+@@ -1,22 +1,35 @@
++export const DESIGN_CATEGORIES = [
++  { id: 'security-gate', label: 'Security Gate', material: 'steel', slatStyle: 'security', image: '/designs/security-gate.jpg' },
++  { id: 'colorbond-infill', label: 'Colorbond Infill', material: 'colorbond', slatStyle: 'flat', image: '/designs/colorbond-infill.jpg' },
++  { id: 'hampton-style', label: 'Hampton Style', material: 'aluminium', slatStyle: 'hampton', image: '/designs/hampton-style.jpg' },
++  { id: 'vertical-tube-gate', label: 'Vertical Tube Gate', material: 'aluminium', slatStyle: 'vertical', image: '/designs/vertical-tube-gate.jpg' },
++  { id: 'bare-frame-powder-coated', label: 'Bare Frame Powder Coated', material: 'aluminium', slatStyle: 'bare', image: '/designs/bare-frame-powder-coated.jpg' },
++  { id: 'slat-gate-horizontal', label: 'Slat Gate Horizontal', material: 'aluminium', slatStyle: 'horizontal', image: '/designs/slat-gate-horizontal.jpg' },
++  { id: 'curve-top-tube-gate', label: 'Curve Top Tube Gate', material: 'aluminium', slatStyle: 'curve-tube', image: '/designs/curve-top-tube-gate.jpg' },
++  { id: 'architectural-face-weld', label: 'Architectural Face Weld', material: 'steel', slatStyle: 'architectural', image: '/designs/architectural-face-weld.jpg' },
++  { id: 'slat-gate-vertical', label: 'Slat Gate Vertical', material: 'aluminium', slatStyle: 'vertical-slat', image: '/designs/slat-gate-vertical.jpg' },
++]
++
+ export const GATE_TYPES = [
+   { id: 'sliding', label: 'Sliding Gate', sub: 'Space-saving', icon: '⇥' },
+-  { id: 'swing-single', label: 'Swing Single', sub: 'Classic entry', icon: '⤺' },
+-  { id: 'swing-double', label: 'Swing Double', sub: 'Wide entrance', icon: '⟺' },
+-  { id: 'pedestrian', label: 'Pedestrian', sub: 'Walk-through', icon: '🚶' },
++  { id: 'swing-double', label: 'Dual Swing Gates', sub: 'Wide entrance', icon: '⟺' },
++]
++
++export const POWER_SUPPLIES = [
++  { id: 'low-voltage', label: 'Low Voltage' },
++  { id: 'solar-system', label: 'Solar System' },
++  { id: '240-volt-plug-in', label: '240 Volt Plug In' },
+ ]
+ 
+-export const MATERIALS = [
+-  { id: 'aluminium', label: 'Aluminium', sub: 'Rust-free', icon: '◇' },
+-  { id: 'steel', label: 'Steel', sub: 'Heavy-duty', icon: '◆' },
+-  { id: 'colorbond', label: 'Colorbond', sub: 'Weather-proof', icon: '▣' },
++export const AUTOMATION_OPTIONS = [
++  { id: 'residential-slide-motor', label: 'Residential Slide Motor', gateTypes: ['sliding'] },
++  { id: 'residential-dual-swing-motors', label: 'Residential Dual Swing Motors', gateTypes: ['swing-double'] },
+ ]
+ 
+-export const SLAT_STYLES = [
+-  { id: 'horizontal', label: 'Horizontal Slat' },
+-  { id: 'vertical', label: 'Vertical Slat' },
+-  { id: 'louvre', label: 'Louvre' },
+-  { id: 'spear', label: 'Spear Top' },
+-  { id: 'flat', label: 'Flat Panel' },
++export const TIMELINES = [
++  { id: 'budgeting-and-planning', label: 'Budgeting and Planning' },
++  { id: 'site-visit-within-2-weeks', label: 'Ready to get a site visit within 2 weeks' },
++  { id: 'need-this-yesterday', label: 'Need this yesterday!' },
+ ]
+ 
+ export const COLORS = [
+@@ -31,34 +44,67 @@ export const COLORS = [
+ ]
+ 
+ export const DEFAULT_CONFIG = {
++  designCategory: 'security-gate',
+   gateType: 'sliding',
+   material: 'aluminium',
+-  slatStyle: 'horizontal',
++  slatStyle: 'security',
+   color: '#1a1a1a',
+   colorName: 'Satin Black',
+   width: 4.0,
+   height: 1.8,
++  powerSupply: 'low-voltage',
++  automation: 'residential-slide-motor',
++  timeline: 'budgeting-and-planning',
+   motor: true,
+   solar: false,
+   intercom: false,
+   sensors: false,
+ }
+ 
++export function getDesignCategory(id) {
++  return DESIGN_CATEGORIES.find((design) => design.id === id) ?? DESIGN_CATEGORIES[0]
++}
++
++export function getAutomationOptions(gateType) {
++  return AUTOMATION_OPTIONS.filter((option) => option.gateTypes.includes(gateType))
++}
++
++export function getDefaultAutomation(gateType) {
++  return getAutomationOptions(gateType)[0]?.id ?? ''
++}
++
++export function normaliseQuoteConfig(cfg) {
++  const design = getDesignCategory(cfg.designCategory)
++  const validAutomation = getAutomationOptions(cfg.gateType).some((option) => option.id === cfg.automation)
++  return {
++    ...cfg,
++    material: design.material,
++    slatStyle: design.slatStyle,
++    automation: validAutomation ? cfg.automation : getDefaultAutomation(cfg.gateType),
++    motor: Boolean(validAutomation ? cfg.automation : getDefaultAutomation(cfg.gateType)),
++    solar: cfg.powerSupply === 'solar-system',
++  }
++}
++
+ export function calcPrice(cfg) {
++  const quoteCfg = normaliseQuoteConfig(cfg)
+   let base = 0
+-  const area = cfg.width * cfg.height
+-  if (cfg.gateType === 'sliding') base = 2200
+-  else if (cfg.gateType === 'swing-single') base = 1800
+-  else if (cfg.gateType === 'swing-double') base = 2800
+-  else base = 1200
++  const area = quoteCfg.width * quoteCfg.height
++  if (quoteCfg.gateType === 'sliding') base = 2200
++  else if (quoteCfg.gateType === 'swing-double') base = 2800
+   base += area * 280
+-  if (cfg.material === 'steel') base *= 1.15
+-  else if (cfg.material === 'colorbond') base *= 0.95
+-  if (cfg.slatStyle === 'louvre') base *= 1.1
+-  else if (cfg.slatStyle === 'spear') base *= 1.08
+-  if (cfg.motor) base += 950
+-  if (cfg.solar) base += 750
+-  if (cfg.intercom) base += 450
+-  if (cfg.sensors) base += 220
++  if (quoteCfg.material === 'steel') base *= 1.15
++  else if (quoteCfg.material === 'colorbond') base *= 0.95
++  if (quoteCfg.motor) base += 950
++  if (quoteCfg.solar) base += 750
++  if (quoteCfg.intercom) base += 450
++  if (quoteCfg.sensors) base += 220
+   return Math.round(base / 10) * 10
+ }
++
++export function calcQuoteTotals(cfg) {
++  const total = calcPrice(cfg)
++  const tax = Math.round(total / 11)
++  const subtotal = total - tax
++  return { subtotal, tax, total }
++}
+diff --git a/src/three/gateBuilder.js b/src/three/gateBuilder.js
+index df7d254..b6c5d5a 100644
+--- a/src/three/gateBuilder.js
++++ b/src/three/gateBuilder.js
+@@ -145,6 +145,7 @@ export function rebuildGate(gateGroup, cfg) {
+       ft,
+       fd,
+       slatStyle: cfg.slatStyle,
++      designCategory: cfg.designCategory,
+       animationType: 'sliding',
+       slideDistance: w * 0.68,
+     })
+@@ -158,6 +159,7 @@ export function rebuildGate(gateGroup, cfg) {
+       ft,
+       fd,
+       slatStyle: cfg.slatStyle,
++      designCategory: cfg.designCategory,
+       animationType: 'swing',
+       swingDirection: -1,
+     })
+@@ -170,6 +172,7 @@ export function rebuildGate(gateGroup, cfg) {
+       ft,
+       fd,
+       slatStyle: cfg.slatStyle,
++      designCategory: cfg.designCategory,
+       animationType: 'swing',
+       swingDirection: 1,
+     })
+@@ -183,6 +186,7 @@ export function rebuildGate(gateGroup, cfg) {
+       ft,
+       fd,
+       slatStyle: cfg.slatStyle,
++      designCategory: cfg.designCategory,
+       animationType: 'swing',
+       swingDirection: -1,
+     })
+@@ -616,13 +620,13 @@ function buildAnimatedGatePanel(group, options) {
+     slideDistance: options.slideDistance ?? 0,
+   }
+ 
+-  buildPanel(panelGroup, options.panelCenterX, options.pw, options.h, options.mat, options.ft, options.fd, options.slatStyle)
++  buildPanel(panelGroup, options.panelCenterX, options.pw, options.h, options.mat, options.ft, options.fd, options.slatStyle, options.designCategory)
+   group.add(panelGroup)
+   return panelGroup
+ }
+ 
+ // ── Panel builder ──
+-function buildPanel(group, cx, pw, h, mat, ft, fd, slatStyle) {
++function buildPanel(group, cx, pw, h, mat, ft, fd, slatStyle, designCategory) {
+   // Frame edges
+   const top = new THREE.Mesh(new THREE.BoxGeometry(pw, ft, fd), mat)
+   top.position.set(cx, h - ft / 2, 0)
+@@ -649,7 +653,16 @@ function buildPanel(group, cx, pw, h, mat, ft, fd, slatStyle) {
+   const innerBot = ft + 0.08
+ 
+   // Infill patterns
+-  if (slatStyle === 'horizontal') {
++  if (slatStyle === 'bare') {
++    if (designCategory === 'bare-frame-powder-coated') {
++      ;[0.35, 0.65].forEach((ratio) => {
++        const rail = new THREE.Mesh(new THREE.BoxGeometry(innerW, 0.025, fd * 0.8), mat)
++        rail.position.set(cx, innerBot + ft / 2 + innerH * ratio, 0)
++        rail.castShadow = true
++        group.add(rail)
++      })
++    }
++  } else if (slatStyle === 'horizontal') {
+     const sh = 0.055
+     const gap = 0.012
+     const cnt = Math.floor(innerH / (sh + gap))
+@@ -662,6 +675,22 @@ function buildPanel(group, cx, pw, h, mat, ft, fd, slatStyle) {
+       s.castShadow = true
+       group.add(s)
+     }
++  } else if (slatStyle === 'vertical-slat') {
++    const sw = 0.075
++    const gap = 0.035
++    const cnt = Math.floor(innerW / (sw + gap))
++    const total = cnt * (sw + gap) - gap
++    const sx = cx - total / 2 + sw / 2
++    for (let i = 0; i < cnt; i++) {
++      const s = new THREE.Mesh(new THREE.BoxGeometry(sw, innerH, fd * 1.25), mat)
++      s.position.set(sx + i * (sw + gap), innerBot + ft / 2 + innerH / 2, 0)
++      s.castShadow = true
++      group.add(s)
++      const highlight = new THREE.Mesh(new THREE.BoxGeometry(Math.max(0.01, sw * 0.18), innerH * 0.98, fd * 1.55), mat)
++      highlight.position.set(sx + i * (sw + gap) - sw * 0.32, innerBot + ft / 2 + innerH / 2, fd * 0.28)
++      highlight.castShadow = true
++      group.add(highlight)
++    }
+   } else if (slatStyle === 'vertical') {
+     const sw = 0.032
+     const gap = 0.022
+@@ -676,6 +705,12 @@ function buildPanel(group, cx, pw, h, mat, ft, fd, slatStyle) {
+       s.position.set(sx + i * (sw + gap), innerBot + ft / 2 + innerH / 2, 0)
+       s.castShadow = true
+       group.add(s)
++      if (designCategory === 'vertical-tube-gate') {
++        const cap = new THREE.Mesh(new THREE.BoxGeometry(sw * 1.8, 0.035, fd * 1.25), mat)
++        cap.position.set(sx + i * (sw + gap), innerBot + ft / 2 + innerH + 0.025, 0)
++        cap.castShadow = true
++        group.add(cap)
++      }
+     }
+   } else if (slatStyle === 'louvre') {
+     const sh = 0.065
+@@ -730,6 +765,75 @@ function buildPanel(group, cx, pw, h, mat, ft, fd, slatStyle) {
+         group.add(rail)
+       }
+     })
++  } else if (slatStyle === 'curve-tube') {
++    const sw = 0.026
++    const gap = 0.07
++    const cnt = Math.max(3, Math.floor(innerW / (sw + gap)))
++    const total = cnt * (sw + gap) - gap
++    const sx = cx - total / 2 + sw / 2
++    for (let i = 0; i < cnt; i++) {
++      const x = sx + i * (sw + gap)
++      const archBoost = Math.sin((i / Math.max(1, cnt - 1)) * Math.PI) * 0.18
++      const barH = Math.max(0.2, innerH - 0.08 + archBoost)
++      const bar = new THREE.Mesh(new THREE.BoxGeometry(sw, barH, fd * 0.7), mat)
++      bar.position.set(x, innerBot + ft / 2 + barH / 2, 0)
++      bar.castShadow = true
++      group.add(bar)
++    }
++    ;[0.34, 0.68].forEach((ratio) => {
++      const rail = new THREE.Mesh(new THREE.BoxGeometry(innerW, 0.026, fd * 0.8), mat)
++      rail.position.set(cx, innerBot + ft / 2 + innerH * ratio, 0)
++      rail.castShadow = true
++      group.add(rail)
++    })
++  } else if (slatStyle === 'architectural') {
++    const panel = new THREE.Mesh(new THREE.BoxGeometry(innerW, innerH, fd * 0.35), mat)
++    panel.position.set(cx, innerBot + ft / 2 + innerH / 2, 0)
++    panel.castShadow = true
++    group.add(panel)
++    ;[-1, 1].forEach((dir) => {
++      const brace = new THREE.Mesh(new THREE.BoxGeometry(Math.hypot(innerW, innerH), 0.026, fd), mat)
++      brace.position.set(cx, innerBot + ft / 2 + innerH / 2, fd * 0.45)
++      brace.rotation.z = dir * Math.atan2(innerH, innerW)
++      brace.castShadow = true
++      group.add(brace)
++    })
++  } else if (slatStyle === 'hampton') {
++    const sw = 0.04
++    const gap = 0.12
++    const cnt = Math.max(2, Math.floor(innerW / (sw + gap)))
++    const total = cnt * (sw + gap) - gap
++    const sx = cx - total / 2 + sw / 2
++    for (let i = 0; i < cnt; i++) {
++      const s = new THREE.Mesh(new THREE.BoxGeometry(sw, innerH, fd * 0.7), mat)
++      s.position.set(sx + i * (sw + gap), innerBot + ft / 2 + innerH / 2, 0)
++      s.castShadow = true
++      group.add(s)
++    }
++    ;[0.28, 0.5, 0.72].forEach((ratio) => {
++      const rail = new THREE.Mesh(new THREE.BoxGeometry(innerW, 0.032, fd * 0.8), mat)
++      rail.position.set(cx, innerBot + ft / 2 + innerH * ratio, 0)
++      rail.castShadow = true
++      group.add(rail)
++    })
++  } else if (slatStyle === 'security') {
++    const sw = 0.022
++    const gap = 0.055
++    const cnt = Math.floor(innerW / (sw + gap))
++    const total = cnt * (sw + gap) - gap
++    const sx = cx - total / 2 + sw / 2
++    for (let i = 0; i < cnt; i++) {
++      const s = new THREE.Mesh(new THREE.BoxGeometry(sw, innerH, fd * 0.9), mat)
++      s.position.set(sx + i * (sw + gap), innerBot + ft / 2 + innerH / 2, 0)
++      s.castShadow = true
++      group.add(s)
++    }
++    ;[0.25, 0.5, 0.75].forEach((ratio) => {
++      const rail = new THREE.Mesh(new THREE.BoxGeometry(innerW, 0.026, fd), mat)
++      rail.position.set(cx, innerBot + ft / 2 + innerH * ratio, 0)
++      rail.castShadow = true
++      group.add(rail)
++    })
+   } else if (slatStyle === 'flat') {
+     const p = new THREE.Mesh(
+       new THREE.BoxGeometry(innerW, innerH, fd * 0.5),
+@@ -738,5 +842,17 @@ function buildPanel(group, cx, pw, h, mat, ft, fd, slatStyle) {
+     p.position.set(cx, innerBot + ft / 2 + innerH / 2, 0)
+     p.castShadow = true
+     group.add(p)
++    if (designCategory === 'colorbond-infill') {
++      const ribW = 0.018
++      const ribGap = 0.13
++      const cnt = Math.floor(innerW / ribGap)
++      for (let i = 0; i <= cnt; i++) {
++        const x = cx - innerW / 2 + i * ribGap
++        const rib = new THREE.Mesh(new THREE.BoxGeometry(ribW, innerH, fd * 1.45), mat)
++        rib.position.set(x, innerBot + ft / 2 + innerH / 2, fd * 0.32)
++        rib.castShadow = true
++        group.add(rib)
++      }
++    }
+   }
+ }
