@@ -3,10 +3,12 @@ git status
 git add .
 git commit -m "Apply Codex gate designer updates"
 git push
-0 @@ export default function App() {
-   const [cfg, setCfg] = useState(DEFAULT_CONFIG)
- 
-   const onUpdate = (key, val) => {
+git apply codex-source-changes.patch
+git status
+git add .
+git commit -m "Apply Codex gate designer updates"
+git push
+l) => {
 +    if (typeof key === 'object') {
 +      setCfg((prev) => ({ ...prev, ...key }))
 +      return
