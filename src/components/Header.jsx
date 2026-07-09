@@ -7,54 +7,26 @@ export default function Header() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '12px 24px',
+        gap: 18,
+        padding: '10px 24px',
         background: 'rgba(10,15,13,0.97)',
         borderBottom: '1px solid #2a332e',
         flexShrink: 0,
         zIndex: 10,
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <div
+      <a href="/" aria-label="Custom Auto Gates home" style={{ display: 'inline-flex', alignItems: 'center', minWidth: 0 }}>
+        <img
+          src="/logo.png"
+          alt="Custom Auto Gates"
           style={{
-            width: 40,
-            height: 40,
-            background: 'linear-gradient(135deg, #b8860b, #d4a017)',
-            borderRadius: 8,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontFamily: "'Playfair Display', Georgia, serif",
-            fontWeight: 700,
-            fontSize: 17,
-            color: '#0a0f0d',
+            display: 'block',
+            width: 'clamp(150px, 22vw, 230px)',
+            maxHeight: 54,
+            objectFit: 'contain',
           }}
-        >
-          CA
-        </div>
-        <div>
-          <div
-            style={{
-              fontFamily: "'Playfair Display', Georgia, serif",
-              fontSize: '1.1rem',
-              fontWeight: 600,
-              lineHeight: 1.2,
-            }}
-          >
-            Custom Auto <span style={{ color: '#b8860b' }}>Gates</span>
-          </div>
-          <div
-            style={{
-              fontSize: '0.55rem',
-              letterSpacing: 2,
-              color: '#6b6960',
-              textTransform: 'uppercase',
-            }}
-          >
-            3D Gate Designer
-          </div>
-        </div>
-      </div>
+        />
+      </a>
 
       <div
         style={{
@@ -63,6 +35,7 @@ export default function Header() {
           gap: 16,
           fontSize: '0.78rem',
           color: '#9a9890',
+          whiteSpace: 'nowrap',
         }}
       >
         <span style={{ opacity: 0.6 }}>Brisbane · Logan · Ipswich</span>

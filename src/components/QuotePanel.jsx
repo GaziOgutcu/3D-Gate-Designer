@@ -1,5 +1,12 @@
 import React, { useState } from 'react'
-import { GATE_TYPES, MATERIALS, SLAT_STYLES } from '../data/config'
+import {
+  AUTOMATION_OPTIONS,
+  DESIGN_CATEGORIES,
+  GATE_TYPES,
+  POWER_SUPPLIES,
+  TIMELINES,
+  calcQuoteTotals,
+} from '../data/config'
 
 const inputStyle = {
   width: '100%',
@@ -45,15 +52,16 @@ export default function QuotePanel({ cfg, priceStr }) {
     }, 1500)
   }
 
+  const totals = calcQuoteTotals(cfg)
+  const formatCurrency = (value) => '$' + value.toLocaleString()
   const summaryRows = [
+    ['Gate Design', DESIGN_CATEGORIES.find((design) => design.id === cfg.designCategory)?.label],
     ['Gate Type', GATE_TYPES.find((g) => g.id === cfg.gateType)?.label],
-    ['Material', MATERIALS.find((m) => m.id === cfg.material)?.label],
-    ['Infill', SLAT_STYLES.find((s) => s.id === cfg.slatStyle)?.label],
+    ['Size', `${Math.round(cfg.width * 1000)}mm × ${Math.round(cfg.height * 1000)}mm`],
+    ['Power Supply', POWER_SUPPLIES.find((power) => power.id === cfg.powerSupply)?.label],
+    ['Automation', AUTOMATION_OPTIONS.find((automation) => automation.id === cfg.automation)?.label],
+    ['Timeline', TIMELINES.find((timeline) => timeline.id === cfg.timeline)?.label],
     ['Colour', cfg.colorName],
-    ['Size', `${cfg.width.toFixed(1)}m × ${cfg.height.toFixed(1)}m`],
-    ['Motor', cfg.motor ? 'Yes' : 'No'],
-    ['Solar', cfg.solar ? 'Yes' : 'No'],
-    ['Intercom', cfg.intercom ? 'Yes' : 'No'],
   ]
 
   const fields = [
@@ -124,7 +132,17 @@ export default function QuotePanel({ cfg, priceStr }) {
             marginTop: 8,
           }}
         >
-          <span style={{ fontWeight: 600 }}>Estimate</span>
+          <span style={{ fontWeight: 600 }}>Tax</span>
+          <span style={{ fontWeight: 700 }}>{formatCurrency(totals.tax)}</span>
+        </div>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            paddingTop: 8,
+          }}
+        >
+          <span style={{ fontWeight: 600 }}>Total</span>
           <span
             style={{
               fontFamily: "'Playfair Display', Georgia, serif",
