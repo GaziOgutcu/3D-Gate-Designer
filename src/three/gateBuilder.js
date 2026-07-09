@@ -145,6 +145,7 @@ export function rebuildGate(gateGroup, cfg) {
       ft,
       fd,
       slatStyle: cfg.slatStyle,
+      designCategory: cfg.designCategory,
       animationType: 'sliding',
       slideDistance: w * 0.68,
     })
@@ -158,6 +159,7 @@ export function rebuildGate(gateGroup, cfg) {
       ft,
       fd,
       slatStyle: cfg.slatStyle,
+      designCategory: cfg.designCategory,
       animationType: 'swing',
       swingDirection: -1,
     })
@@ -170,6 +172,7 @@ export function rebuildGate(gateGroup, cfg) {
       ft,
       fd,
       slatStyle: cfg.slatStyle,
+      designCategory: cfg.designCategory,
       animationType: 'swing',
       swingDirection: 1,
     })
@@ -183,6 +186,7 @@ export function rebuildGate(gateGroup, cfg) {
       ft,
       fd,
       slatStyle: cfg.slatStyle,
+      designCategory: cfg.designCategory,
       animationType: 'swing',
       swingDirection: -1,
     })
@@ -616,13 +620,13 @@ function buildAnimatedGatePanel(group, options) {
     slideDistance: options.slideDistance ?? 0,
   }
 
-  buildPanel(panelGroup, options.panelCenterX, options.pw, options.h, options.mat, options.ft, options.fd, options.slatStyle)
+  buildPanel(panelGroup, options.panelCenterX, options.pw, options.h, options.mat, options.ft, options.fd, options.slatStyle, options.designCategory)
   group.add(panelGroup)
   return panelGroup
 }
 
 // ── Panel builder ──
-function buildPanel(group, cx, pw, h, mat, ft, fd, slatStyle) {
+function buildPanel(group, cx, pw, h, mat, ft, fd, slatStyle, designCategory) {
   // Frame edges
   const top = new THREE.Mesh(new THREE.BoxGeometry(pw, ft, fd), mat)
   top.position.set(cx, h - ft / 2, 0)
@@ -649,7 +653,16 @@ function buildPanel(group, cx, pw, h, mat, ft, fd, slatStyle) {
   const innerBot = ft + 0.08
 
   // Infill patterns
-  if (slatStyle === 'horizontal') {
+  if (slatStyle === 'bare') {
+    if (designCategory === 'bare-frame-powder-coated') {
+      ;[0.35, 0.65].forEach((ratio) => {
+        const rail = new THREE.Mesh(new THREE.BoxGeometry(innerW, 0.025, fd * 0.8), mat)
+        rail.position.set(cx, innerBot + ft / 2 + innerH * ratio, 0)
+        rail.castShadow = true
+        group.add(rail)
+      })
+    }
+  } else if (slatStyle === 'horizontal') {
     const sh = 0.055
     const gap = 0.012
     const cnt = Math.floor(innerH / (sh + gap))
@@ -729,6 +742,75 @@ function buildPanel(group, cx, pw, h, mat, ft, fd, slatStyle) {
         rail.position.set(cx, innerBot + ft / 2 + ry * innerH, 0)
         group.add(rail)
       }
+    })
+  } else if (slatStyle === 'curve-tube') {
+    const sw = 0.026
+    const gap = 0.07
+    const cnt = Math.max(3, Math.floor(innerW / (sw + gap)))
+    const total = cnt * (sw + gap) - gap
+    const sx = cx - total / 2 + sw / 2
+    for (let i = 0; i < cnt; i++) {
+      const x = sx + i * (sw + gap)
+      const archBoost = Math.sin((i / Math.max(1, cnt - 1)) * Math.PI) * 0.18
+      const barH = Math.max(0.2, innerH - 0.08 + archBoost)
+      const bar = new THREE.Mesh(new THREE.BoxGeometry(sw, barH, fd * 0.7), mat)
+      bar.position.set(x, innerBot + ft / 2 + barH / 2, 0)
+      bar.castShadow = true
+      group.add(bar)
+    }
+    ;[0.34, 0.68].forEach((ratio) => {
+      const rail = new THREE.Mesh(new THREE.BoxGeometry(innerW, 0.026, fd * 0.8), mat)
+      rail.position.set(cx, innerBot + ft / 2 + innerH * ratio, 0)
+      rail.castShadow = true
+      group.add(rail)
+    })
+  } else if (slatStyle === 'architectural') {
+    const panel = new THREE.Mesh(new THREE.BoxGeometry(innerW, innerH, fd * 0.35), mat)
+    panel.position.set(cx, innerBot + ft / 2 + innerH / 2, 0)
+    panel.castShadow = true
+    group.add(panel)
+    ;[-1, 1].forEach((dir) => {
+      const brace = new THREE.Mesh(new THREE.BoxGeometry(Math.hypot(innerW, innerH), 0.026, fd), mat)
+      brace.position.set(cx, innerBot + ft / 2 + innerH / 2, fd * 0.45)
+      brace.rotation.z = dir * Math.atan2(innerH, innerW)
+      brace.castShadow = true
+      group.add(brace)
+    })
+  } else if (slatStyle === 'hampton') {
+    const sw = 0.04
+    const gap = 0.12
+    const cnt = Math.max(2, Math.floor(innerW / (sw + gap)))
+    const total = cnt * (sw + gap) - gap
+    const sx = cx - total / 2 + sw / 2
+    for (let i = 0; i < cnt; i++) {
+      const s = new THREE.Mesh(new THREE.BoxGeometry(sw, innerH, fd * 0.7), mat)
+      s.position.set(sx + i * (sw + gap), innerBot + ft / 2 + innerH / 2, 0)
+      s.castShadow = true
+      group.add(s)
+    }
+    ;[0.28, 0.5, 0.72].forEach((ratio) => {
+      const rail = new THREE.Mesh(new THREE.BoxGeometry(innerW, 0.032, fd * 0.8), mat)
+      rail.position.set(cx, innerBot + ft / 2 + innerH * ratio, 0)
+      rail.castShadow = true
+      group.add(rail)
+    })
+  } else if (slatStyle === 'security') {
+    const sw = 0.022
+    const gap = 0.055
+    const cnt = Math.floor(innerW / (sw + gap))
+    const total = cnt * (sw + gap) - gap
+    const sx = cx - total / 2 + sw / 2
+    for (let i = 0; i < cnt; i++) {
+      const s = new THREE.Mesh(new THREE.BoxGeometry(sw, innerH, fd * 0.9), mat)
+      s.position.set(sx + i * (sw + gap), innerBot + ft / 2 + innerH / 2, 0)
+      s.castShadow = true
+      group.add(s)
+    }
+    ;[0.25, 0.5, 0.75].forEach((ratio) => {
+      const rail = new THREE.Mesh(new THREE.BoxGeometry(innerW, 0.026, fd), mat)
+      rail.position.set(cx, innerBot + ft / 2 + innerH * ratio, 0)
+      rail.castShadow = true
+      group.add(rail)
     })
   } else if (slatStyle === 'flat') {
     const p = new THREE.Mesh(

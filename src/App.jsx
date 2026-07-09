@@ -9,6 +9,10 @@ export default function App() {
   const [cfg, setCfg] = useState(DEFAULT_CONFIG)
 
   const onUpdate = (key, val) => {
+    if (typeof key === 'object') {
+      setCfg((prev) => ({ ...prev, ...key }))
+      return
+    }
     setCfg((prev) => ({ ...prev, [key]: val }))
   }
 
