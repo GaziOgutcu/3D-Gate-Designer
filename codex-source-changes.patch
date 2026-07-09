@@ -2,7 +2,8 @@ git apply codex-source-changes.patch
 git status
 git add .
 git commit -m "Apply Codex gate designer updates"
--9,6 +9,10 @@ export default function App() {
+git push
+0 @@ export default function App() {
    const [cfg, setCfg] = useState(DEFAULT_CONFIG)
  
    const onUpdate = (key, val) => {
