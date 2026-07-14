@@ -26,7 +26,7 @@ function positionCamera(sceneState, cfg, view) {
 }
 
 
-export default function Viewport3D({ cfg }) {
+export default function Viewport3D({ cfg, onCaptureScreenshot }) {
   const canvasRef = useRef(null)
   const sceneRef = useRef(null)
   const frameRef = useRef(null)
@@ -54,6 +54,12 @@ export default function Viewport3D({ cfg }) {
     sceneRef.current = s
     rebuildGate(s.gateGroup, cfgRef.current)
     positionCamera(s, cfgRef.current, 'persp')
+
+    onCaptureScreenshot?.(() => {
+      s.controls.update()
+      s.renderer.render(s.scene, s.camera)
+      return canvas.toDataURL('image/jpeg', 0.82)
+    })
 
     setSceneReady(false)
     const carLoad = loadCarModel(s.scene, cfgRef.current)
@@ -141,9 +147,10 @@ export default function Viewport3D({ cfg }) {
         clearGroup(group)
         s.scene.remove(group)
       })
+      onCaptureScreenshot?.(null)
       s.renderer.dispose()
     }
-  }, [])
+  }, [onCaptureScreenshot])
 
   // Rebuild on config change
   useEffect(() => {
