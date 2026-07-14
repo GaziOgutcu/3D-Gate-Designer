@@ -6,6 +6,7 @@ import {
   POWER_SUPPLIES,
   TIMELINES,
 } from '../data/config'
+import { emailConfig, isEmailConfigured, sendInquiryEmail } from '../services/email'
 
 const INQUIRY_EMAIL = 'info@customautogates.com.au'
 
@@ -48,7 +49,7 @@ function buildInquiryEmail(form, summaryRows) {
     form.notes || 'None',
   ].join('\n')
 
-  return `mailto:${INQUIRY_EMAIL}?subject=${encodeURIComponent('New 3D gate design inquiry')}&body=${encodeURIComponent(body)}`
+  return `mailto:${emailConfig.toEmail}?subject=${encodeURIComponent('New 3D gate design inquiry')}&body=${encodeURIComponent(body)}`
 }
 
 export default function QuotePanel({ cfg }) {
@@ -60,6 +61,8 @@ export default function QuotePanel({ cfg }) {
     notes: '',
   })
   const [submitted, setSubmitted] = useState(false)
+  const [sending, setSending] = useState(false)
+  const [sendError, setSendError] = useState('')
 
   const summaryRows = [
     ['Gate Design', DESIGN_CATEGORIES.find((design) => design.id === cfg.designCategory)?.label],
@@ -71,10 +74,25 @@ export default function QuotePanel({ cfg }) {
     ['Colour', cfg.colorName],
   ]
 
-  const handleSubmit = () => {
-    if (!form.name || !form.phone || !form.email) return
-    window.open(buildInquiryEmail(form, summaryRows), '_blank', 'noopener,noreferrer')
-    setSubmitted(true)
+  const handleSubmit = async () => {
+    if (!form.name || !form.phone || !form.email || sending) return
+    setSending(true)
+    setSendError('')
+    const result = await sendInquiryEmail({ form, summaryRows })
+    setSending(false)
+
+    if (result.ok) {
+      setSubmitted(true)
+      return
+    }
+
+    if (result.reason === 'missing-email-config') {
+      window.open(buildInquiryEmail(form, summaryRows), '_blank', 'noopener,noreferrer')
+      setSubmitted(true)
+      return
+    }
+
+    setSendError('Email could not be sent. Please call us or try again shortly.')
   }
 
   const fields = [
@@ -111,6 +129,7 @@ export default function QuotePanel({ cfg }) {
         </h2>
         <p style={{ fontSize: '0.73rem', color: '#9a9890', margin: 0 }}>
           Submit your 3D design and we will email your quote after review.
+          {isEmailConfigured() ? '' : ' EmailJS setup is required for direct notifications.'}
         </p>
       </div>
 
@@ -189,6 +208,12 @@ export default function QuotePanel({ cfg }) {
           />
         </div>
 
+        {sendError && (
+          <div style={{ marginBottom: 12, color: '#ff8a8a', fontSize: '0.72rem', lineHeight: 1.4 }}>
+            {sendError}
+          </div>
+        )}
+
         <button
           onClick={handleSubmit}
           style={{
@@ -202,12 +227,13 @@ export default function QuotePanel({ cfg }) {
             fontSize: '0.88rem',
             border: 'none',
             borderRadius: 10,
-            cursor: 'pointer',
+            cursor: sending ? 'wait' : 'pointer',
+            opacity: sending ? 0.65 : 1,
             letterSpacing: 0.5,
             transition: 'all 0.3s',
           }}
         >
-          Send Inquiry →
+          {sending ? 'Sending inquiry...' : 'Send Inquiry →'}
         </button>
 
         <div
@@ -276,7 +302,7 @@ export default function QuotePanel({ cfg }) {
             <div style={{ fontSize: '2rem', marginBottom: 8 }}>✓</div>
             <h3 style={{ margin: 0, marginBottom: 8, color: '#d4a017' }}>Inquiry received</h3>
             <p style={{ margin: 0, color: '#e8e6e1', fontSize: '0.86rem', lineHeight: 1.5 }}>
-              Thanks {form.name}. Your design inquiry has been prepared for our team. A reviewed quote will be sent to {form.email}.
+              Thanks {form.name}. Your design inquiry has been sent to {emailConfig.toEmail}. A reviewed quote will be sent to {form.email}.
             </p>
             <button
               type="button"
