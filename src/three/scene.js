@@ -16,10 +16,11 @@ export function createScene(canvas) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true })
   renderer.setSize(canvas.clientWidth, canvas.clientHeight)
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+  renderer.outputColorSpace = THREE.SRGBColorSpace
   renderer.shadowMap.enabled = true
   renderer.shadowMap.type = THREE.PCFSoftShadowMap
   renderer.toneMapping = THREE.ACESFilmicToneMapping
-  renderer.toneMappingExposure = 1.15
+  renderer.toneMappingExposure = 1.05
 
   // ── Lighting ──
   scene.add(new THREE.AmbientLight(0xffffff, 0.42))

@@ -1,14 +1,13 @@
 export const DESIGN_CATEGORIES = [
-  { id: 'bare-frame', label: 'Bare Frame', material: 'aluminium', slatStyle: 'bare' },
-  { id: 'bare-frame-powder-coated', label: 'Bare Frame Powder Coated', material: 'aluminium', slatStyle: 'bare' },
-  { id: 'vertical-tube-gate', label: 'Vertical Tube Gate', material: 'aluminium', slatStyle: 'vertical' },
-  { id: 'curve-top-tube-gate', label: 'Curve Top Tube Gate', material: 'aluminium', slatStyle: 'curve-tube' },
-  { id: 'slat-gate-horizontal', label: 'Slat Gate Horizontal', material: 'aluminium', slatStyle: 'horizontal' },
-  { id: 'slat-gate-vertical', label: 'Slat Gate Vertical', material: 'aluminium', slatStyle: 'vertical' },
-  { id: 'architectural-face-weld', label: 'Architectural Face Weld', material: 'steel', slatStyle: 'architectural' },
-  { id: 'hampton-style', label: 'Hampton Style', material: 'aluminium', slatStyle: 'hampton' },
-  { id: 'colorbond-infill', label: 'Colorbond Infill', material: 'colorbond', slatStyle: 'flat' },
-  { id: 'security-gate', label: 'Security Gate', material: 'steel', slatStyle: 'security' },
+  { id: 'bare-frame-powder-coated', label: 'Bare Frame Powder Coated', material: 'aluminium', slatStyle: 'bare', image: '/designs/bare-frame-powder-coated.jpg' },
+  { id: 'vertical-tube-gate', image: '/designs/vertical-tube-gate.jpg', label: 'Vertical Tube Gate', material: 'aluminium', slatStyle: 'vertical' },
+  { id: 'curve-top-tube-gate', image: '/designs/curve-top-tube-gate.jpg', label: 'Curve Top Tube Gate', material: 'aluminium', slatStyle: 'curve-tube' },
+  { id: 'slat-gate-horizontal', image: '/designs/slat-gate-horizontal.jpg', label: 'Slat Gate Horizontal', material: 'aluminium', slatStyle: 'horizontal' },
+  { id: 'slat-gate-vertical', image: '/designs/slat-gate-vertical.jpg', label: 'Slat Gate Vertical', material: 'aluminium', slatStyle: 'vertical' },
+  { id: 'architectural-face-weld', image: '/designs/architectural-face-weld.jpg', label: 'Architectural Face Weld', material: 'steel', slatStyle: 'architectural' },
+  { id: 'hampton-style', image: '/designs/hampton-style.jpg', label: 'Hampton Style', material: 'aluminium', slatStyle: 'hampton' },
+  { id: 'colorbond-infill', image: '/designs/colorbond-infill.jpg', label: 'Colorbond Infill', material: 'colorbond', slatStyle: 'flat' },
+  { id: 'security-gate', image: '/designs/security-gate.jpg', label: 'Security Gate', material: 'steel', slatStyle: 'security' },
 ]
 
 export const GATE_TYPES = [
@@ -85,27 +84,4 @@ export function normaliseQuoteConfig(cfg) {
     motor: Boolean(validAutomation ? cfg.automation : getDefaultAutomation(cfg.gateType)),
     solar: cfg.powerSupply === 'solar-system',
   }
-}
-
-export function calcPrice(cfg) {
-  const quoteCfg = normaliseQuoteConfig(cfg)
-  let base = 0
-  const area = quoteCfg.width * quoteCfg.height
-  if (quoteCfg.gateType === 'sliding') base = 2200
-  else if (quoteCfg.gateType === 'swing-double') base = 2800
-  base += area * 280
-  if (quoteCfg.material === 'steel') base *= 1.15
-  else if (quoteCfg.material === 'colorbond') base *= 0.95
-  if (quoteCfg.motor) base += 950
-  if (quoteCfg.solar) base += 750
-  if (quoteCfg.intercom) base += 450
-  if (quoteCfg.sensors) base += 220
-  return Math.round(base / 10) * 10
-}
-
-export function calcQuoteTotals(cfg) {
-  const total = calcPrice(cfg)
-  const tax = Math.round(total / 11)
-  const subtotal = total - tax
-  return { subtotal, tax, total }
 }
