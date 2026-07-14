@@ -21,7 +21,7 @@ export default function Header() {
           alt="Custom Auto Gates"
           style={{
             display: 'block',
-            width: 'clamp(300px, 44vw, 460px)',
+            width: 'clamp(600px, 88vw, 920px)',
             maxHeight: 108,
             objectFit: 'contain',
           }}
