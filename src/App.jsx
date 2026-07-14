@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useCallback, useRef, useState } from 'react'
 import Header from './components/Header'
 import ConfigPanel from './components/ConfigPanel'
 import Viewport3D from './components/Viewport3D'
@@ -7,6 +7,7 @@ import { DEFAULT_CONFIG } from './data/config'
 
 export default function App() {
   const [cfg, setCfg] = useState(DEFAULT_CONFIG)
+  const screenshotCaptureRef = useRef(null)
 
   const onUpdate = (key, val) => {
     if (typeof key === 'object') {

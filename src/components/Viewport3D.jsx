@@ -129,9 +129,10 @@ export default function Viewport3D({ cfg }) {
         clearGroup(group)
         s.scene.remove(group)
       })
+      onCaptureScreenshot?.(null)
       s.renderer.dispose()
     }
-  }, [])
+  }, [onCaptureScreenshot])
 
   // Rebuild on config change
   useEffect(() => {
