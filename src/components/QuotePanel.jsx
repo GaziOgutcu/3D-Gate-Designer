@@ -50,7 +50,7 @@ function buildInquiryEmail(form, summaryRows) {
   return `mailto:${emailConfig.toEmail}?subject=${encodeURIComponent('New 3D gate design inquiry')}&body=${encodeURIComponent(body)}`
 }
 
-export default function QuotePanel({ cfg, getScreenshot }) {
+export default function QuotePanel({ cfg }) {
   const [form, setForm] = useState({
     name: '',
     phone: '',
@@ -76,8 +76,7 @@ export default function QuotePanel({ cfg, getScreenshot }) {
     if (!form.name || !form.phone || !form.email || sending) return
     setSending(true)
     setSendError('')
-    const screenshotData = getScreenshot?.()
-    const result = await sendInquiryEmail({ form, summaryRows, screenshotData })
+    const result = await sendInquiryEmail({ form, summaryRows })
     setSending(false)
 
     if (result.ok) {
@@ -302,7 +301,7 @@ export default function QuotePanel({ cfg, getScreenshot }) {
             <div style={{ fontSize: '2rem', marginBottom: 8 }}>✓</div>
             <h3 style={{ margin: 0, marginBottom: 8, color: '#d4a017' }}>Inquiry received</h3>
             <p style={{ margin: 0, color: '#e8e6e1', fontSize: '0.86rem', lineHeight: 1.5 }}>
-              Thanks {form.name}. Your design inquiry has been sent to {emailConfig.toEmail} with the 3D visual screenshot attached when available. A reviewed quote will be sent to {form.email}.
+              Thanks {form.name}. Your design inquiry has been sent to {emailConfig.toEmail}. A reviewed quote will be sent to {form.email}.
             </p>
             <button
               type="button"

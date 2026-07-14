@@ -11,7 +11,7 @@ export function isEmailConfigured() {
   return Boolean(emailConfig.serviceId && emailConfig.templateId && emailConfig.publicKey)
 }
 
-export async function sendInquiryEmail({ form, summaryRows, screenshotData }) {
+export async function sendInquiryEmail({ form, summaryRows }) {
   if (!isEmailConfigured()) {
     return { ok: false, reason: 'missing-email-config' }
   }
@@ -35,8 +35,6 @@ export async function sendInquiryEmail({ form, summaryRows, screenshotData }) {
         address: form.address || 'Not provided',
         notes: form.notes || 'None',
         design_summary: summaryText,
-        screenshot_image: screenshotData || '',
-        screenshot_filename: '3d-gate-design.jpg',
         message: [
           `Name: ${form.name}`,
           `Phone: ${form.phone}`,

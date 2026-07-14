@@ -37,9 +37,8 @@ This app uses the EmailJS REST API for browser-based inquiry notifications. Emai
 
 1. Create an EmailJS account and connect your email service.
 2. Create a template that sends to your inbox and includes variables such as `{{from_name}}`, `{{from_email}}`, `{{phone}}`, `{{address}}`, `{{design_summary}}`, `{{notes}}`, and `{{message}}`.
-3. In the template **Attachments** tab, add a **Variable Attachment** named `screenshot_image`, with filename `3d-gate-design.jpg` and content type `image/jpeg`.
-4. Copy `.env.example` to `.env.local` and fill in your EmailJS IDs plus your recipient email.
-5. Add the same environment variables in Vercel before deploying.
+3. Copy `.env.example` to `.env.local` and fill in your EmailJS IDs plus your recipient email.
+4. Add the same environment variables in Vercel before deploying.
 
 ```bash
 VITE_EMAILJS_SERVICE_ID=your_service_id

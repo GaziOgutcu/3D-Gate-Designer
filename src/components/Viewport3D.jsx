@@ -26,7 +26,7 @@ function positionCamera(sceneState, cfg, view) {
 }
 
 
-export default function Viewport3D({ cfg, onCaptureScreenshot }) {
+export default function Viewport3D({ cfg }) {
   const canvasRef = useRef(null)
   const sceneRef = useRef(null)
   const frameRef = useRef(null)
@@ -55,11 +55,6 @@ export default function Viewport3D({ cfg, onCaptureScreenshot }) {
     rebuildGate(s.gateGroup, cfgRef.current)
     positionCamera(s, cfgRef.current, 'persp')
 
-    onCaptureScreenshot?.(() => {
-      s.controls.update()
-      s.renderer.render(s.scene, s.camera)
-      return canvas.toDataURL('image/jpeg', 0.82)
-    })
 
     setSceneReady(false)
     const carLoad = loadCarModel(s.scene, cfgRef.current)

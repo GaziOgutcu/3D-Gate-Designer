@@ -17,12 +17,6 @@ export default function App() {
     setCfg((prev) => ({ ...prev, [key]: val }))
   }
 
-  const registerScreenshotCapture = useCallback((captureScreenshot) => {
-    screenshotCaptureRef.current = captureScreenshot
-  }, [])
-
-  const getScreenshot = useCallback(() => screenshotCaptureRef.current?.(), [])
-
   return (
     <div
       style={{
@@ -45,8 +39,8 @@ export default function App() {
         }}
       >
         <ConfigPanel cfg={cfg} onUpdate={onUpdate} />
-        <Viewport3D cfg={cfg} onCaptureScreenshot={registerScreenshotCapture} />
-        <QuotePanel cfg={cfg} getScreenshot={getScreenshot} />
+        <Viewport3D cfg={cfg} />
+        <QuotePanel cfg={cfg} />
       </div>
     </div>
   )
