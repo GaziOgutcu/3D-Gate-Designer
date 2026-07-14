@@ -216,7 +216,6 @@ export default function QuotePanel({ cfg, getScreenshot }) {
 
         <button
           onClick={handleSubmit}
-          disabled={sending}
           style={{
             width: '100%',
             padding: 13,
