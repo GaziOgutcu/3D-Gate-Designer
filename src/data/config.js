@@ -1,14 +1,13 @@
 export const DESIGN_CATEGORIES = [
-  { id: 'bare-frame', label: 'Bare Frame', material: 'aluminium', slatStyle: 'bare' },
-  { id: 'bare-frame-powder-coated', label: 'Bare Frame Powder Coated', material: 'aluminium', slatStyle: 'bare' },
-  { id: 'vertical-tube-gate', label: 'Vertical Tube Gate', material: 'aluminium', slatStyle: 'vertical' },
-  { id: 'curve-top-tube-gate', label: 'Curve Top Tube Gate', material: 'aluminium', slatStyle: 'curve-tube' },
-  { id: 'slat-gate-horizontal', label: 'Slat Gate Horizontal', material: 'aluminium', slatStyle: 'horizontal' },
-  { id: 'slat-gate-vertical', label: 'Slat Gate Vertical', material: 'aluminium', slatStyle: 'vertical' },
-  { id: 'architectural-face-weld', label: 'Architectural Face Weld', material: 'steel', slatStyle: 'architectural' },
-  { id: 'hampton-style', label: 'Hampton Style', material: 'aluminium', slatStyle: 'hampton' },
-  { id: 'colorbond-infill', label: 'Colorbond Infill', material: 'colorbond', slatStyle: 'flat' },
-  { id: 'security-gate', label: 'Security Gate', material: 'steel', slatStyle: 'security' },
+  { id: 'bare-frame-powder-coated', label: 'Bare Frame Powder Coated', material: 'aluminium', slatStyle: 'bare', image: '/designs/bare-frame-powder-coated.jpg' },
+  { id: 'vertical-tube-gate', image: '/designs/vertical-tube-gate.jpg', label: 'Vertical Tube Gate', material: 'aluminium', slatStyle: 'vertical' },
+  { id: 'curve-top-tube-gate', image: '/designs/curve-top-tube-gate.jpg', label: 'Curve Top Tube Gate', material: 'aluminium', slatStyle: 'curve-tube' },
+  { id: 'slat-gate-horizontal', image: '/designs/slat-gate-horizontal.jpg', label: 'Slat Gate Horizontal', material: 'aluminium', slatStyle: 'horizontal' },
+  { id: 'slat-gate-vertical', image: '/designs/slat-gate-vertical.jpg', label: 'Slat Gate Vertical', material: 'aluminium', slatStyle: 'vertical' },
+  { id: 'architectural-face-weld', image: '/designs/architectural-face-weld.jpg', label: 'Architectural Face Weld', material: 'steel', slatStyle: 'architectural' },
+  { id: 'hampton-style', image: '/designs/hampton-style.jpg', label: 'Hampton Style', material: 'aluminium', slatStyle: 'hampton' },
+  { id: 'colorbond-infill', image: '/designs/colorbond-infill.jpg', label: 'Colorbond Infill', material: 'colorbond', slatStyle: 'flat' },
+  { id: 'security-gate', image: '/designs/security-gate.jpg', label: 'Security Gate', material: 'steel', slatStyle: 'security' },
 ]
 
 export const GATE_TYPES = [
