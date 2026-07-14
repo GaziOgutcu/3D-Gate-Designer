@@ -91,7 +91,8 @@ export default function QuotePanel({ cfg, getScreenshot }) {
       return
     }
 
-    setSendError('Email could not be sent. Please call us or try again shortly.')
+    console.error('EmailJS inquiry send failed:', result.reason)
+    setSendError(`Email could not be sent. EmailJS returned: ${result.reason || 'unknown error'}`)
   }
 
   const fields = [
