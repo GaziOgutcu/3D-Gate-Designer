@@ -626,27 +626,41 @@ function buildAnimatedGatePanel(group, options) {
 }
 
 // ── Panel builder ──
+function addPanelBox(group, size, position, mat, options = {}) {
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(...size), mat)
+  mesh.position.set(...position)
+  if (options.rotation) mesh.rotation.set(...options.rotation)
+  mesh.castShadow = true
+  mesh.receiveShadow = true
+  group.add(mesh)
+  return mesh
+}
+
+function addSlats(group, { cx, innerBot, innerW, innerH, fd, mat, orientation, thickness, gap }) {
+  const run = orientation === 'horizontal' ? innerH : innerW
+  const count = Math.max(1, Math.floor(run / (thickness + gap)))
+  const total = count * thickness + (count - 1) * gap
+  const start = -total / 2 + thickness / 2
+
+  for (let i = 0; i < count; i++) {
+    const offset = start + i * (thickness + gap)
+    if (orientation === 'horizontal') {
+      addPanelBox(group, [innerW, thickness, fd * 0.75], [cx, innerBot + innerH / 2 + offset, 0], mat)
+    } else {
+      addPanelBox(group, [thickness, innerH, fd * 0.75], [cx + offset, innerBot + innerH / 2, 0], mat)
+    }
+  }
+}
+
 function buildPanel(group, cx, pw, h, mat, ft, fd, slatStyle, designCategory) {
   // Frame edges
-  const top = new THREE.Mesh(new THREE.BoxGeometry(pw, ft, fd), mat)
-  top.position.set(cx, h - ft / 2, 0)
-  top.castShadow = true
-  group.add(top)
+  if (slatStyle !== 'curve-tube') {
+    addPanelBox(group, [pw, ft, fd], [cx, h - ft / 2, 0], mat)
+  }
 
-  const bot = new THREE.Mesh(new THREE.BoxGeometry(pw, ft, fd), mat)
-  bot.position.set(cx, ft / 2 + 0.08, 0)
-  bot.castShadow = true
-  group.add(bot)
-
-  const left = new THREE.Mesh(new THREE.BoxGeometry(ft, h - 0.08, fd), mat)
-  left.position.set(cx - pw / 2 + ft / 2, h / 2 + 0.04, 0)
-  left.castShadow = true
-  group.add(left)
-
-  const right = new THREE.Mesh(new THREE.BoxGeometry(ft, h - 0.08, fd), mat)
-  right.position.set(cx + pw / 2 - ft / 2, h / 2 + 0.04, 0)
-  right.castShadow = true
-  group.add(right)
+  addPanelBox(group, [pw, ft, fd], [cx, ft / 2 + 0.08, 0], mat)
+  addPanelBox(group, [ft, h - 0.08, fd], [cx - pw / 2 + ft / 2, h / 2 + 0.04, 0], mat)
+  addPanelBox(group, [ft, h - 0.08, fd], [cx + pw / 2 - ft / 2, h / 2 + 0.04, 0], mat)
 
   const innerW = pw - ft * 2
   const innerH = h - ft * 2 - 0.08
@@ -655,40 +669,16 @@ function buildPanel(group, cx, pw, h, mat, ft, fd, slatStyle, designCategory) {
   // Infill patterns
   if (slatStyle === 'bare') {
     if (designCategory === 'bare-frame-powder-coated') {
-      ;[0.35, 0.65].forEach((ratio) => {
-        const rail = new THREE.Mesh(new THREE.BoxGeometry(innerW, 0.025, fd * 0.8), mat)
-        rail.position.set(cx, innerBot + ft / 2 + innerH * ratio, 0)
-        rail.castShadow = true
-        group.add(rail)
-      })
+      addSlats(group, { cx, innerBot, innerW, innerH, fd, mat, orientation: 'vertical', thickness: 0.08, gap: 0.035 })
+      ;[0.35, 0.65].forEach((ratio) => addPanelBox(group, [innerW, 0.026, fd], [cx, innerBot + innerH * ratio, 0.01], mat))
     }
   } else if (slatStyle === 'horizontal') {
-    const sh = 0.055
-    const gap = 0.012
-    const cnt = Math.floor(innerH / (sh + gap))
-    for (let i = 0; i < cnt; i++) {
-      const s = new THREE.Mesh(
-        new THREE.BoxGeometry(innerW, sh, fd * 0.6),
-        mat
-      )
-      s.position.set(cx, innerBot + ft / 2 + i * (sh + gap) + sh / 2, 0)
-      s.castShadow = true
-      group.add(s)
-    }
+    addSlats(group, { cx, innerBot, innerW, innerH, fd, mat, orientation: 'horizontal', thickness: 0.075, gap: 0.026 })
   } else if (slatStyle === 'vertical') {
-    const sw = 0.032
-    const gap = 0.022
-    const cnt = Math.floor(innerW / (sw + gap))
-    const total = cnt * (sw + gap) - gap
-    const sx = cx - total / 2 + sw / 2
-    for (let i = 0; i < cnt; i++) {
-      const s = new THREE.Mesh(
-        new THREE.BoxGeometry(sw, innerH, fd * 0.6),
-        mat
-      )
-      s.position.set(sx + i * (sw + gap), innerBot + ft / 2 + innerH / 2, 0)
-      s.castShadow = true
-      group.add(s)
+    const isTubeGate = designCategory === 'vertical-tube-gate'
+    addSlats(group, { cx, innerBot, innerW, innerH, fd, mat, orientation: 'vertical', thickness: isTubeGate ? 0.035 : 0.075, gap: isTubeGate ? 0.08 : 0.026 })
+    if (isTubeGate) {
+      ;[0.32, 0.66].forEach((ratio) => addPanelBox(group, [innerW, 0.026, fd], [cx, innerBot + innerH * ratio, 0.01], mat))
     }
   } else if (slatStyle === 'louvre') {
     const sh = 0.065
@@ -749,14 +739,22 @@ function buildPanel(group, cx, pw, h, mat, ft, fd, slatStyle, designCategory) {
     const cnt = Math.max(3, Math.floor(innerW / (sw + gap)))
     const total = cnt * (sw + gap) - gap
     const sx = cx - total / 2 + sw / 2
+    const archPoints = []
     for (let i = 0; i < cnt; i++) {
       const x = sx + i * (sw + gap)
       const archBoost = Math.sin((i / Math.max(1, cnt - 1)) * Math.PI) * 0.18
       const barH = Math.max(0.2, innerH - 0.08 + archBoost)
+      archPoints.push([x, innerBot + ft / 2 + barH])
       const bar = new THREE.Mesh(new THREE.BoxGeometry(sw, barH, fd * 0.7), mat)
       bar.position.set(x, innerBot + ft / 2 + barH / 2, 0)
       bar.castShadow = true
       group.add(bar)
+    }
+    for (let i = 0; i < archPoints.length - 1; i++) {
+      const [x1, y1] = archPoints[i]
+      const [x2, y2] = archPoints[i + 1]
+      const length = Math.hypot(x2 - x1, y2 - y1)
+      addPanelBox(group, [length, ft, fd], [(x1 + x2) / 2, (y1 + y2) / 2, 0], mat, { rotation: [0, 0, Math.atan2(y2 - y1, x2 - x1)] })
     }
     ;[0.34, 0.68].forEach((ratio) => {
       const rail = new THREE.Mesh(new THREE.BoxGeometry(innerW, 0.026, fd * 0.8), mat)
@@ -813,12 +811,9 @@ function buildPanel(group, cx, pw, h, mat, ft, fd, slatStyle, designCategory) {
       group.add(rail)
     })
   } else if (slatStyle === 'flat') {
-    const p = new THREE.Mesh(
-      new THREE.BoxGeometry(innerW, innerH, fd * 0.5),
-      mat
-    )
-    p.position.set(cx, innerBot + ft / 2 + innerH / 2, 0)
-    p.castShadow = true
-    group.add(p)
+    addPanelBox(group, [innerW, innerH, fd * 0.45], [cx, innerBot + ft / 2 + innerH / 2, 0], mat)
+    const ribMat = mat.clone()
+    ribMat.color = mat.color.clone().offsetHSL(0, 0, 0.08)
+    addSlats(group, { cx, innerBot, innerW, innerH, fd, mat: ribMat, orientation: 'vertical', thickness: 0.024, gap: 0.18 })
   }
 }
