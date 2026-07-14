@@ -26,7 +26,7 @@ function positionCamera(sceneState, cfg, view) {
 }
 
 
-export default function Viewport3D({ cfg, priceStr }) {
+export default function Viewport3D({ cfg }) {
   const canvasRef = useRef(null)
   const sceneRef = useRef(null)
   const frameRef = useRef(null)
@@ -55,7 +55,7 @@ export default function Viewport3D({ cfg, priceStr }) {
     rebuildGate(s.gateGroup, cfgRef.current)
     positionCamera(s, cfgRef.current, 'persp')
 
-    setSceneReady(false)
+    setSceneReady(true)
     const carLoad = loadCarModel(s.scene, cfgRef.current)
     const drivewayCarLoad = loadCarModel(s.scene, cfgRef.current, {
       variant: 'driveway-right',
@@ -84,17 +84,6 @@ export default function Viewport3D({ cfg, priceStr }) {
       { group: rightHouseLoad.group, variant: 'right' },
     ]
 
-    let cancelled = false
-    Promise.allSettled([
-      carLoad.promise,
-      houseLoad.promise,
-      rubbishLoad.promise,
-      leftHouseLoad.promise,
-      rightHouseLoad.promise,
-    ]).then(() => {
-      if (!cancelled) setSceneReady(true)
-    })
-
     const onResize = () => handleResize(canvas, s.camera, s.renderer)
     window.addEventListener('resize', onResize)
 
@@ -119,7 +108,6 @@ export default function Viewport3D({ cfg, priceStr }) {
       cancelAnimationFrame(frameRef.current)
       window.removeEventListener('resize', onResize)
       ro.disconnect()
-      cancelled = true
       s.controls.dispose()
       if (carRef.current) {
         clearGroup(carRef.current)
@@ -353,43 +341,18 @@ export default function Viewport3D({ cfg, priceStr }) {
         </div>
         <div
           style={{
-            background: 'linear-gradient(135deg, #b8860b, #d4a017)',
+            background: 'rgba(10,15,13,0.85)',
+            border: '1px solid #2a332e',
             borderRadius: 12,
-            padding: '12px 20px',
+            padding: '12px 18px',
             textAlign: 'right',
             pointerEvents: 'auto',
+            color: '#d4a017',
+            fontWeight: 700,
+            fontSize: '0.78rem',
           }}
         >
-          <div
-            style={{
-              fontSize: '0.58rem',
-              textTransform: 'uppercase',
-              letterSpacing: 2,
-              color: 'rgba(10,15,13,0.6)',
-              marginBottom: 2,
-            }}
-          >
-            Estimated From
-          </div>
-          <div
-            style={{
-              fontFamily: "'Playfair Display', Georgia, serif",
-              fontSize: '1.5rem',
-              fontWeight: 700,
-              color: '#0a0f0d',
-            }}
-          >
-            {priceStr}
-          </div>
-          <div
-            style={{
-              fontSize: '0.58rem',
-              color: 'rgba(10,15,13,0.5)',
-              marginTop: 1,
-            }}
-          >
-            Incl. GST · Final quote on-site
-          </div>
+          Quote will be emailed after inquiry
         </div>
       </div>
     </div>
