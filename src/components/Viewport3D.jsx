@@ -26,7 +26,7 @@ function positionCamera(sceneState, cfg, view) {
 }
 
 
-export default function Viewport3D({ cfg, priceStr }) {
+export default function Viewport3D({ cfg, onCaptureScreenshot }) {
   const canvasRef = useRef(null)
   const sceneRef = useRef(null)
   const frameRef = useRef(null)
@@ -54,6 +54,12 @@ export default function Viewport3D({ cfg, priceStr }) {
     sceneRef.current = s
     rebuildGate(s.gateGroup, cfgRef.current)
     positionCamera(s, cfgRef.current, 'persp')
+
+    onCaptureScreenshot?.(() => {
+      s.controls.update()
+      s.renderer.render(s.scene, s.camera)
+      return canvas.toDataURL('image/jpeg', 0.82)
+    })
 
     setSceneReady(false)
     const carLoad = loadCarModel(s.scene, cfgRef.current)
@@ -141,9 +147,10 @@ export default function Viewport3D({ cfg, priceStr }) {
         clearGroup(group)
         s.scene.remove(group)
       })
+      onCaptureScreenshot?.(null)
       s.renderer.dispose()
     }
-  }, [])
+  }, [onCaptureScreenshot])
 
   // Rebuild on config change
   useEffect(() => {
@@ -353,43 +360,18 @@ export default function Viewport3D({ cfg, priceStr }) {
         </div>
         <div
           style={{
-            background: 'linear-gradient(135deg, #b8860b, #d4a017)',
+            background: 'rgba(10,15,13,0.85)',
+            border: '1px solid #2a332e',
             borderRadius: 12,
-            padding: '12px 20px',
+            padding: '12px 18px',
             textAlign: 'right',
             pointerEvents: 'auto',
+            color: '#d4a017',
+            fontWeight: 700,
+            fontSize: '0.78rem',
           }}
         >
-          <div
-            style={{
-              fontSize: '0.58rem',
-              textTransform: 'uppercase',
-              letterSpacing: 2,
-              color: 'rgba(10,15,13,0.6)',
-              marginBottom: 2,
-            }}
-          >
-            Estimated From
-          </div>
-          <div
-            style={{
-              fontFamily: "'Playfair Display', Georgia, serif",
-              fontSize: '1.5rem',
-              fontWeight: 700,
-              color: '#0a0f0d',
-            }}
-          >
-            {priceStr}
-          </div>
-          <div
-            style={{
-              fontSize: '0.58rem',
-              color: 'rgba(10,15,13,0.5)',
-              marginTop: 1,
-            }}
-          >
-            Incl. GST · Final quote on-site
-          </div>
+          Quote will be emailed after inquiry
         </div>
       </div>
     </div>

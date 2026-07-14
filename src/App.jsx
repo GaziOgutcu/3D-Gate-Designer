@@ -1,12 +1,13 @@
-import React, { useState } from 'react'
+import React, { useCallback, useRef, useState } from 'react'
 import Header from './components/Header'
 import ConfigPanel from './components/ConfigPanel'
 import Viewport3D from './components/Viewport3D'
 import QuotePanel from './components/QuotePanel'
-import { DEFAULT_CONFIG, calcPrice } from './data/config'
+import { DEFAULT_CONFIG } from './data/config'
 
 export default function App() {
   const [cfg, setCfg] = useState(DEFAULT_CONFIG)
+  const screenshotCaptureRef = useRef(null)
 
   const onUpdate = (key, val) => {
     if (typeof key === 'object') {
@@ -16,8 +17,11 @@ export default function App() {
     setCfg((prev) => ({ ...prev, [key]: val }))
   }
 
-  const price = calcPrice(cfg)
-  const priceStr = '$' + price.toLocaleString()
+  const registerScreenshotCapture = useCallback((captureScreenshot) => {
+    screenshotCaptureRef.current = captureScreenshot
+  }, [])
+
+  const getScreenshot = useCallback(() => screenshotCaptureRef.current?.(), [])
 
   return (
     <div
@@ -41,8 +45,8 @@ export default function App() {
         }}
       >
         <ConfigPanel cfg={cfg} onUpdate={onUpdate} />
-        <Viewport3D cfg={cfg} priceStr={priceStr} />
-        <QuotePanel cfg={cfg} priceStr={priceStr} />
+        <Viewport3D cfg={cfg} onCaptureScreenshot={registerScreenshotCapture} />
+        <QuotePanel cfg={cfg} getScreenshot={getScreenshot} />
       </div>
     </div>
   )
