@@ -1,5 +1,4 @@
 export const DESIGN_CATEGORIES = [
-  { id: 'bare-frame', label: 'Bare Frame', material: 'aluminium', slatStyle: 'bare' },
   { id: 'bare-frame-powder-coated', label: 'Bare Frame Powder Coated', material: 'aluminium', slatStyle: 'bare', image: '/designs/bare-frame-powder-coated.jpg' },
   { id: 'vertical-tube-gate', image: '/designs/vertical-tube-gate.jpg', label: 'Vertical Tube Gate', material: 'aluminium', slatStyle: 'vertical' },
   { id: 'curve-top-tube-gate', image: '/designs/curve-top-tube-gate.jpg', label: 'Curve Top Tube Gate', material: 'aluminium', slatStyle: 'curve-tube' },

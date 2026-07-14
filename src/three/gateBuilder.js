@@ -669,12 +669,8 @@ function buildPanel(group, cx, pw, h, mat, ft, fd, slatStyle, designCategory) {
   // Infill patterns
   if (slatStyle === 'bare') {
     if (designCategory === 'bare-frame-powder-coated') {
-      ;[0.35, 0.65].forEach((ratio) => {
-        const rail = new THREE.Mesh(new THREE.BoxGeometry(innerW, 0.025, fd * 0.8), mat)
-        rail.position.set(cx, innerBot + ft / 2 + innerH * ratio, 0)
-        rail.castShadow = true
-        group.add(rail)
-      })
+      addSlats(group, { cx, innerBot, innerW, innerH, fd, mat, orientation: 'vertical', thickness: 0.08, gap: 0.035 })
+      ;[0.35, 0.65].forEach((ratio) => addPanelBox(group, [innerW, 0.026, fd], [cx, innerBot + innerH * ratio, 0.01], mat))
     }
   } else if (slatStyle === 'horizontal') {
     addSlats(group, { cx, innerBot, innerW, innerH, fd, mat, orientation: 'horizontal', thickness: 0.075, gap: 0.026 })
