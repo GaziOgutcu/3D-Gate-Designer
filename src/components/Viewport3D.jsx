@@ -55,8 +55,7 @@ export default function Viewport3D({ cfg }) {
     rebuildGate(s.gateGroup, cfgRef.current)
     positionCamera(s, cfgRef.current, 'persp')
 
-
-    setSceneReady(false)
+    setSceneReady(true)
     const carLoad = loadCarModel(s.scene, cfgRef.current)
     const drivewayCarLoad = loadCarModel(s.scene, cfgRef.current, {
       variant: 'driveway-right',
@@ -85,17 +84,6 @@ export default function Viewport3D({ cfg }) {
       { group: rightHouseLoad.group, variant: 'right' },
     ]
 
-    let cancelled = false
-    Promise.allSettled([
-      carLoad.promise,
-      houseLoad.promise,
-      rubbishLoad.promise,
-      leftHouseLoad.promise,
-      rightHouseLoad.promise,
-    ]).then(() => {
-      if (!cancelled) setSceneReady(true)
-    })
-
     const onResize = () => handleResize(canvas, s.camera, s.renderer)
     window.addEventListener('resize', onResize)
 
@@ -120,7 +108,6 @@ export default function Viewport3D({ cfg }) {
       cancelAnimationFrame(frameRef.current)
       window.removeEventListener('resize', onResize)
       ro.disconnect()
-      cancelled = true
       s.controls.dispose()
       if (carRef.current) {
         clearGroup(carRef.current)
