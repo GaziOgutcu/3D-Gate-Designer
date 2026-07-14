@@ -780,22 +780,23 @@ function buildPanel(group, cx, pw, h, mat, ft, fd, slatStyle, designCategory) {
       group.add(brace)
     })
   } else if (slatStyle === 'hampton') {
-    const sw = 0.04
-    const gap = 0.12
-    const cnt = Math.max(2, Math.floor(innerW / (sw + gap)))
-    const total = cnt * (sw + gap) - gap
+    const topOpenH = Math.min(0.34, innerH * 0.24)
+    const separatorY = innerBot + innerH - topOpenH
+    const picketH = Math.max(0.35, separatorY - innerBot - ft * 0.7)
+    const picketCenterY = innerBot + picketH / 2
+    const sw = 0.045
+    const gap = 0.095
+    const cnt = Math.max(3, Math.floor(innerW / (sw + gap)))
+    const total = cnt * sw + (cnt - 1) * gap
     const sx = cx - total / 2 + sw / 2
+
     for (let i = 0; i < cnt; i++) {
-      const s = new THREE.Mesh(new THREE.BoxGeometry(sw, innerH, fd * 0.7), mat)
-      s.position.set(sx + i * (sw + gap), innerBot + ft / 2 + innerH / 2, 0)
-      s.castShadow = true
-      group.add(s)
+      addPanelBox(group, [sw, picketH, fd * 0.75], [sx + i * (sw + gap), picketCenterY, 0], mat)
     }
-    ;[0.28, 0.5, 0.72].forEach((ratio) => {
-      const rail = new THREE.Mesh(new THREE.BoxGeometry(innerW, 0.032, fd * 0.8), mat)
-      rail.position.set(cx, innerBot + ft / 2 + innerH * ratio, 0)
-      rail.castShadow = true
-      group.add(rail)
+
+    addPanelBox(group, [innerW, 0.035, fd], [cx, separatorY, 0.01], mat)
+    ;[-0.33, 0.33].forEach((ratio) => {
+      addPanelBox(group, [0.055, topOpenH - ft * 1.4, fd], [cx + innerW * ratio, separatorY + topOpenH / 2, 0.01], mat)
     })
   } else if (slatStyle === 'security') {
     const sw = 0.022
