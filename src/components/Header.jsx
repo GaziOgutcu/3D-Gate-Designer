@@ -7,8 +7,8 @@ export default function Header() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        gap: 18,
-        padding: '10px 24px',
+        gap: 24,
+        padding: '16px 32px',
         background: 'rgba(10,15,13,0.97)',
         borderBottom: '1px solid #2a332e',
         flexShrink: 0,
@@ -21,8 +21,9 @@ export default function Header() {
           alt="Custom Auto Gates"
           style={{
             display: 'block',
-            width: 'clamp(150px, 22vw, 230px)',
-            maxHeight: 54,
+            height: 132,
+            width: 'auto',
+            maxWidth: 'min(560px, 50vw)',
             objectFit: 'contain',
           }}
         />
@@ -32,8 +33,8 @@ export default function Header() {
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: 16,
-          fontSize: '0.78rem',
+          gap: 20,
+          fontSize: '0.9rem',
           color: '#9a9890',
           whiteSpace: 'nowrap',
         }}
@@ -42,8 +43,8 @@ export default function Header() {
         <div
           style={{
             background: '#161e1a',
-            padding: '6px 14px',
-            borderRadius: 20,
+            padding: '9px 18px',
+            borderRadius: 24,
             border: '1px solid #2a332e',
             display: 'flex',
             alignItems: 'center',
@@ -56,7 +57,7 @@ export default function Header() {
             style={{
               color: '#d4a017',
               textDecoration: 'none',
-              fontWeight: 500,
+              fontWeight: 700,
             }}
           >
             (07) 3102 1801
