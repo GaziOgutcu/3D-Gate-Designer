@@ -8,6 +8,8 @@ import {
 } from '../data/config'
 import { emailConfig, isEmailConfigured, sendInquiryEmail } from '../services/email'
 
+const INQUIRY_EMAIL = 'info@customautogates.com.au'
+
 const inputStyle = {
   width: '100%',
   padding: '9px 12px',
@@ -214,7 +216,6 @@ export default function QuotePanel({ cfg }) {
 
         <button
           onClick={handleSubmit}
-          disabled={sending}
           style={{
             width: '100%',
             padding: 13,
