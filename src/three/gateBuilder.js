@@ -23,16 +23,16 @@ export function rebuildGate(gateGroup, cfg) {
     color,
     roughness:
       cfg.material === 'aluminium'
-        ? 0.35
+        ? 0.62
         : cfg.material === 'steel'
-          ? 0.55
-          : 0.7,
+          ? 0.58
+          : 0.68,
     metalness:
       cfg.material === 'aluminium'
-        ? 0.85
+        ? 0.18
         : cfg.material === 'steel'
-          ? 0.75
-          : 0.1,
+          ? 0.28
+          : 0.04,
   })
 
   const pillarMat = new THREE.MeshStandardMaterial({

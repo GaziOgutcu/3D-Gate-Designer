@@ -168,12 +168,51 @@ export default function ConfigPanel({ cfg, onUpdate }) {
       <div style={{ ...panelSection, borderBottom: 'none' }}>
         <div style={sectionLabel}>Colour</div>
         <div style={sectionTitle}>Gate Colour</div>
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 12 }}>
-          {COLORS.map((c) => (
-            <div key={c.hex} onClick={() => onUpdate({ color: c.hex, colorName: c.name })} title={c.name} style={{ width: 36, height: 36, borderRadius: '50%', background: c.hex, cursor: 'pointer', border: `3px solid ${cfg.color === c.hex ? '#d4a017' : '#2a332e'}`, boxShadow: cfg.color === c.hex ? '0 0 0 3px rgba(184,134,11,0.25)' : 'none', transform: cfg.color === c.hex ? 'scale(1.15)' : 'scale(1)', transition: 'all 0.2s' }} />
-          ))}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 12 }}>
+          {COLORS.map((c) => {
+            const active = cfg.color === c.hex
+            return (
+              <button
+                key={c.hex}
+                type="button"
+                onClick={() => onUpdate({ color: c.hex, colorName: c.name })}
+                title={`${c.name} ${c.hex}`}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '8px 9px',
+                  borderRadius: 10,
+                  border: `2px solid ${active ? '#d4a017' : '#2a332e'}`,
+                  background: active ? '#1c2621' : '#161e1a',
+                  color: active ? '#d4a017' : '#e8e6e1',
+                  cursor: 'pointer',
+                  fontFamily: "'DM Sans', sans-serif",
+                  fontSize: '0.68rem',
+                  fontWeight: 700,
+                  textAlign: 'left',
+                }}
+              >
+                <span
+                  style={{
+                    width: 22,
+                    height: 22,
+                    borderRadius: 6,
+                    background: c.hex,
+                    border: c.hex.toLowerCase() === '#f5f0e8' ? '1px solid #d8d2c7' : '1px solid rgba(255,255,255,0.22)',
+                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.28)',
+                    flexShrink: 0,
+                  }}
+                />
+                <span style={{ display: 'grid', gap: 1 }}>
+                  <span>{c.name}</span>
+                  <span style={{ color: '#6b6960', fontSize: '0.58rem', letterSpacing: 0.6 }}>{c.hex.toUpperCase()}</span>
+                </span>
+              </button>
+            )
+          })}
         </div>
-        <div style={{ fontSize: '0.7rem', color: '#9a9890', marginTop: 8 }}>Selected: {cfg.colorName}</div>
+        <div style={{ fontSize: '0.7rem', color: '#9a9890', marginTop: 8 }}>Selected powder coat: {cfg.colorName}</div>
       </div>
     </div>
     {previewDesign && (
