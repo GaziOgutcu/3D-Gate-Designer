@@ -5,8 +5,9 @@ import {
   GATE_TYPES,
   POWER_SUPPLIES,
   TIMELINES,
-  calcQuoteTotals,
 } from '../data/config'
+
+const INQUIRY_EMAIL = 'info@customautogates.com.au'
 
 const inputStyle = {
   width: '100%',
@@ -30,7 +31,27 @@ const labelStyle = {
   marginBottom: 5,
 }
 
-export default function QuotePanel({ cfg, priceStr }) {
+function buildInquiryEmail(form, summaryRows) {
+  const summary = summaryRows.map(([label, value]) => `${label}: ${value ?? 'Not selected'}`).join('\n')
+  const body = [
+    'New 3D gate design inquiry',
+    '',
+    `Name: ${form.name}`,
+    `Phone: ${form.phone}`,
+    `Customer email: ${form.email}`,
+    `Address: ${form.address || 'Not provided'}`,
+    '',
+    'Design summary:',
+    summary,
+    '',
+    'Customer notes:',
+    form.notes || 'None',
+  ].join('\n')
+
+  return `mailto:${INQUIRY_EMAIL}?subject=${encodeURIComponent('New 3D gate design inquiry')}&body=${encodeURIComponent(body)}`
+}
+
+export default function QuotePanel({ cfg }) {
   const [form, setForm] = useState({
     name: '',
     phone: '',
@@ -39,21 +60,7 @@ export default function QuotePanel({ cfg, priceStr }) {
     notes: '',
   })
   const [submitted, setSubmitted] = useState(false)
-  const [sending, setSending] = useState(false)
 
-  const handleSubmit = () => {
-    if (!form.name || !form.phone || !form.email) return
-    setSending(true)
-    // Simulate API call — replace with real endpoint
-    setTimeout(() => {
-      setSending(false)
-      setSubmitted(true)
-      setTimeout(() => setSubmitted(false), 5000)
-    }, 1500)
-  }
-
-  const totals = calcQuoteTotals(cfg)
-  const formatCurrency = (value) => '$' + value.toLocaleString()
   const summaryRows = [
     ['Gate Design', DESIGN_CATEGORIES.find((design) => design.id === cfg.designCategory)?.label],
     ['Gate Type', GATE_TYPES.find((g) => g.id === cfg.gateType)?.label],
@@ -63,6 +70,12 @@ export default function QuotePanel({ cfg, priceStr }) {
     ['Timeline', TIMELINES.find((timeline) => timeline.id === cfg.timeline)?.label],
     ['Colour', cfg.colorName],
   ]
+
+  const handleSubmit = () => {
+    if (!form.name || !form.phone || !form.email) return
+    window.open(buildInquiryEmail(form, summaryRows), '_blank', 'noopener,noreferrer')
+    setSubmitted(true)
+  }
 
   const fields = [
     { key: 'name', label: 'Full Name *', type: 'text', placeholder: 'John Smith' },
@@ -84,7 +97,6 @@ export default function QuotePanel({ cfg, priceStr }) {
         flexShrink: 0,
       }}
     >
-      {/* Header */}
       <div style={{ padding: '20px 22px', borderBottom: '1px solid #2a332e' }}>
         <h2
           style={{
@@ -95,14 +107,13 @@ export default function QuotePanel({ cfg, priceStr }) {
             marginBottom: 4,
           }}
         >
-          Request a Quote
+          Send Inquiry
         </h2>
         <p style={{ fontSize: '0.73rem', color: '#9a9890', margin: 0 }}>
-          Send your 3D design for an obligation-free quote.
+          Submit your 3D design and we will email your quote after review.
         </p>
       </div>
 
-      {/* Summary */}
       <div
         style={{
           padding: '16px 22px',
@@ -116,47 +127,29 @@ export default function QuotePanel({ cfg, priceStr }) {
             style={{
               display: 'flex',
               justifyContent: 'space-between',
+              gap: 12,
               padding: '6px 0',
             }}
           >
             <span style={{ color: '#9a9890' }}>{k}</span>
-            <span style={{ fontWeight: 600 }}>{v}</span>
+            <span style={{ fontWeight: 600, textAlign: 'right' }}>{v}</span>
           </div>
         ))}
         <div
           style={{
-            display: 'flex',
-            justifyContent: 'space-between',
             borderTop: '1px solid #2a332e',
             paddingTop: 12,
             marginTop: 8,
+            color: '#d4a017',
+            fontSize: '0.74rem',
+            lineHeight: 1.45,
+            fontWeight: 700,
           }}
         >
-          <span style={{ fontWeight: 600 }}>Tax</span>
-          <span style={{ fontWeight: 700 }}>{formatCurrency(totals.tax)}</span>
-        </div>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            paddingTop: 8,
-          }}
-        >
-          <span style={{ fontWeight: 600 }}>Total</span>
-          <span
-            style={{
-              fontFamily: "'Playfair Display', Georgia, serif",
-              fontSize: '1.2rem',
-              fontWeight: 700,
-              color: '#d4a017',
-            }}
-          >
-            {priceStr}
-          </span>
+          No online price is shown. A reviewed quote will be sent to the customer email address.
         </div>
       </div>
 
-      {/* Form */}
       <div
         style={{
           padding: '16px 22px',
@@ -198,31 +191,23 @@ export default function QuotePanel({ cfg, priceStr }) {
 
         <button
           onClick={handleSubmit}
-          disabled={sending}
           style={{
             width: '100%',
             padding: 13,
             marginTop: 'auto',
-            background: submitted
-              ? '#4a9e6d'
-              : 'linear-gradient(135deg, #b8860b, #d4a017)',
+            background: 'linear-gradient(135deg, #b8860b, #d4a017)',
             color: '#0a0f0d',
             fontFamily: "'DM Sans', sans-serif",
             fontWeight: 700,
             fontSize: '0.88rem',
             border: 'none',
             borderRadius: 10,
-            cursor: sending ? 'wait' : 'pointer',
+            cursor: 'pointer',
             letterSpacing: 0.5,
             transition: 'all 0.3s',
-            opacity: sending ? 0.6 : 1,
           }}
         >
-          {sending
-            ? 'Sending...'
-            : submitted
-              ? '✓ Quote Sent!'
-              : 'Send Quote Request →'}
+          Send Inquiry →
         </button>
 
         <div
@@ -250,15 +235,68 @@ export default function QuotePanel({ cfg, priceStr }) {
               flexShrink: 0,
             }}
           >
-            ✓
+            ✉
           </div>
           <div style={{ fontSize: '0.68rem', color: '#4a9e6d', lineHeight: 1.4 }}>
-            <strong>10-Year Structural Warranty</strong>
+            <strong>Quote by email</strong>
             <br />
-            All aluminium gates quality guaranteed.
+            Our team will review the design before sending quote details.
           </div>
         </div>
       </div>
+
+      {submitted && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Inquiry submitted"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 120,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 24,
+            background: 'rgba(0,0,0,0.72)',
+            backdropFilter: 'blur(8px)',
+          }}
+        >
+          <div
+            style={{
+              width: 'min(420px, 92vw)',
+              background: '#111916',
+              border: '1px solid #4a9e6d',
+              borderRadius: 16,
+              padding: 22,
+              boxShadow: '0 24px 80px rgba(0,0,0,0.55)',
+              textAlign: 'center',
+            }}
+          >
+            <div style={{ fontSize: '2rem', marginBottom: 8 }}>✓</div>
+            <h3 style={{ margin: 0, marginBottom: 8, color: '#d4a017' }}>Inquiry received</h3>
+            <p style={{ margin: 0, color: '#e8e6e1', fontSize: '0.86rem', lineHeight: 1.5 }}>
+              Thanks {form.name}. Your design inquiry has been prepared for our team. A reviewed quote will be sent to {form.email}.
+            </p>
+            <button
+              type="button"
+              onClick={() => setSubmitted(false)}
+              style={{
+                marginTop: 18,
+                padding: '9px 14px',
+                border: 'none',
+                borderRadius: 9,
+                background: '#4a9e6d',
+                color: '#0a0f0d',
+                cursor: 'pointer',
+                fontWeight: 700,
+              }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

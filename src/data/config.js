@@ -85,26 +85,3 @@ export function normaliseQuoteConfig(cfg) {
     solar: cfg.powerSupply === 'solar-system',
   }
 }
-
-export function calcPrice(cfg) {
-  const quoteCfg = normaliseQuoteConfig(cfg)
-  let base = 0
-  const area = quoteCfg.width * quoteCfg.height
-  if (quoteCfg.gateType === 'sliding') base = 2200
-  else if (quoteCfg.gateType === 'swing-double') base = 2800
-  base += area * 280
-  if (quoteCfg.material === 'steel') base *= 1.15
-  else if (quoteCfg.material === 'colorbond') base *= 0.95
-  if (quoteCfg.motor) base += 950
-  if (quoteCfg.solar) base += 750
-  if (quoteCfg.intercom) base += 450
-  if (quoteCfg.sensors) base += 220
-  return Math.round(base / 10) * 10
-}
-
-export function calcQuoteTotals(cfg) {
-  const total = calcPrice(cfg)
-  const tax = Math.round(total / 11)
-  const subtotal = total - tax
-  return { subtotal, tax, total }
-}

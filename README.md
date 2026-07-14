@@ -52,7 +52,7 @@ src/
 │   ├── QuotePanel.jsx       # Right sidebar — summary + form
 │   └── Toggle.jsx           # Reusable toggle switch
 ├── data/
-│   └── config.js            # Gate types, materials, colours, pricing
+│   └── config.js            # Gate types, materials, colours
 └── three/
     ├── scene.js             # Three.js scene, lights, ground
     └── gateBuilder.js       # 3D gate geometry builder

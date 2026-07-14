@@ -158,7 +158,7 @@ export default function ConfigPanel({ cfg, onUpdate }) {
       </div>
 
       <div style={panelSection}>
-        <div style={sectionLabel}>04 — Timeline / Estimate</div>
+        <div style={sectionLabel}>04 — Timeline</div>
         <div style={sectionTitle}>Project Timeline</div>
         <div style={{ display: 'grid', gap: 8, marginTop: 12 }}>
           {TIMELINES.map((timeline) => <button key={timeline.id} onClick={() => onUpdate('timeline', timeline.id)} style={optionButton(cfg.timeline === timeline.id)}>{timeline.label}</button>)}
