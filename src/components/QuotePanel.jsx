@@ -57,7 +57,9 @@ export default function QuotePanel({ cfg }) {
     email: '',
     address: '',
     notes: '',
+    website: '', // honeypot: real users never see or fill this
   })
+  const [errors, setErrors] = useState({})
   const [submitted, setSubmitted] = useState(false)
   const [sending, setSending] = useState(false)
   const [sendError, setSendError] = useState('')
@@ -70,10 +72,30 @@ export default function QuotePanel({ cfg }) {
     ['Automation', AUTOMATION_OPTIONS.find((automation) => automation.id === cfg.automation)?.label],
     ['Timeline', TIMELINES.find((timeline) => timeline.id === cfg.timeline)?.label],
     ['Colour', cfg.colorName],
+    ['Width (mm)', Math.round(cfg.width * 1000)],
+    ['Height (mm)', Math.round(cfg.height * 1000)],
+    ['Note', 'Visual demonstration only. Final product may vary, subject to site visit and final measurements.'],
   ]
 
+  const validate = () => {
+    const next = {}
+    if (!form.name.trim()) next.name = 'Please enter your name.'
+    const digits = form.phone.replace(/\D/g, '')
+    if (digits.length < 8 || digits.length > 12) next.phone = 'Please enter a valid phone number.'
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) next.email = 'Please enter a valid email address.'
+    return next
+  }
+
   const handleSubmit = async () => {
-    if (!form.name || !form.phone || !form.email || sending) return
+    if (sending) return
+    if (form.website) {
+      // Honeypot filled: pretend success, send nothing.
+      setSubmitted(true)
+      return
+    }
+    const found = validate()
+    setErrors(found)
+    if (Object.keys(found).length) return
     setSending(true)
     setSendError('')
     const result = await sendInquiryEmail({ form, summaryRows })
@@ -139,7 +161,7 @@ export default function QuotePanel({ cfg }) {
           fontSize: '0.78rem',
         }}
       >
-        {summaryRows.map(([k, v]) => (
+        {summaryRows.filter(([k]) => !['Width (mm)', 'Height (mm)', 'Note'].includes(k)).map(([k, v]) => (
           <div
             key={k}
             style={{
@@ -186,10 +208,25 @@ export default function QuotePanel({ cfg }) {
               onChange={(e) =>
                 setForm((p) => ({ ...p, [f.key]: e.target.value }))
               }
-              style={inputStyle}
+              aria-invalid={Boolean(errors[f.key])}
+              style={{ ...inputStyle, ...(errors[f.key] ? { borderColor: '#c0392b' } : null) }}
             />
+            {errors[f.key] && (
+              <div role="alert" style={{ color: '#ff8a8a', fontSize: '0.7rem', marginTop: 4 }}>{errors[f.key]}</div>
+            )}
           </div>
         ))}
+
+        <input
+          type="text"
+          name="website"
+          tabIndex={-1}
+          autoComplete="off"
+          aria-hidden="true"
+          value={form.website}
+          onChange={(e) => setForm((p) => ({ ...p, website: e.target.value }))}
+          style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, opacity: 0 }}
+        />
 
         <div style={{ marginBottom: 12 }}>
           <label style={labelStyle}>Notes</label>
