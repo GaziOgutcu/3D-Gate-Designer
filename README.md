@@ -6,15 +6,12 @@ Customers can design their custom gate in real-time 3D, choose materials, colour
 
 ## Features
 
-- **Real-time 3D** — Three.js powered gate visualization with PBR materials, shadows, and cinematic lighting
-- **4 Gate Types** — Sliding, Swing Single, Swing Double, Pedestrian
-- **3 Materials** — Aluminium, Steel, Colorbond® with accurate metalness/roughness
-- **5 Infill Patterns** — Horizontal Slat, Vertical Slat, Louvre, Spear Top, Flat Panel
-- **8 Colorbond Colours** — Australian standard colour palette
-- **Live Dimensions** — Width 1.5m–8m, Height 0.9m–2.4m
-- **Add-ons** — Gate motor, solar power, intercom/keypad, safety sensors (all visible in 3D)
-- **Reviewed Email Quotes** — Inquiry details are emailed for manual quote review
-- **Quote Form** — Inline inquiry submission with full configuration summary
+- **Real-time 3D** — Three.js gate visualisation on a realistic lot (house, neighbours, car, bins, trees)
+- **9 design categories** — Bare frame, vertical tube, curve top, horizontal/vertical slat, architectural face weld, Hampton, Colorbond infill, security
+- **Gate types** — Sliding and dual swing, with matching automation options
+- **Power supply** — Low voltage, solar, 240 V plug-in
+- **Live dimensions** — Width 1.5m–8m, height 0.9m–2.4m
+- **Reviewed email quotes** — No online price; inquiries are emailed for manual quote review
 
 ## Tech Stack
 
